@@ -1,2 +1,2 @@
 # rmstale
-Remove stale files
+Removes stale files
