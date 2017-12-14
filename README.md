@@ -1,0 +1,2 @@
+# rmstale
+Remove stale files
