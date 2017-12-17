@@ -3,33 +3,36 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"os"
-	"path"
+	"path/filepath"
 	"time"
 )
 
+var age int
+var folder string
+
 func main() {
-	path := flag.String("path", os.TempDir(), "Path to check for stale files.")
-	age := flag.Int("age", 0, "Age in days to check for file modification.")
+	flag.StringVar(&folder, "path", os.TempDir(), "Path to check for stale files.")
+	flag.IntVar(&age, "age", 0, "Age in days to check for file modification.")
 	confirm := flag.Bool("y", false, "Don't prompt for confirmation.")
 
 	flag.Parse()
 
-	if *age == 0 {
+	if age == 0 {
 		flag.PrintDefaults()
 		os.Exit(1)
 	}
 
 	if !*confirm {
-		fmt.Printf("WARNING: Will remove files and folders recursively below %q older than %v days. Continue? (yes/no):", *path, *age)
+		fmt.Printf("WARNING: Will remove files and folders recursively below %q older than %v days. Continue? (yes/no):", folder, age)
 		if !askForConfirmation() {
 			fmt.Println("Operation not confirmed, exiting.")
 			os.Exit(1)
 		}
 	}
-	if err := removeFiles(*path, *age); err != nil {
+	if err := filepath.Walk(folder, walkfunc); err != nil {
 		fmt.Printf("failed to read directory: %v\n", err)
 		os.Exit(1)
 	}
@@ -76,22 +79,33 @@ func containsString(slice []string, element string) bool {
 	return !(posString(slice, element) == -1)
 }
 
-func removeFiles(fp string, age int) error {
-	items, err := ioutil.ReadDir(fp)
-	if err != nil {
-		return err
-	}
-
-	for _, item := range items {
-		if item.Mode().IsDir() {
-			if err := removeFiles(path.Join(fp, item.Name()), age); err != nil {
-				return err
-			}
-		} else {
-			if item.ModTime().Before(time.Now().AddDate(0, 0, (age * -1))) {
-				fmt.Printf("Deleting %q which is old\n", path.Join(fp, item.Name()))
-			}
+func walkfunc(fp string, fi os.FileInfo, err error) error {
+	if fi.IsDir() {
+		empty, err := isEmpty(fp)
+		if err != nil {
+			return err
+		}
+		if empty && fi.ModTime().Before(time.Now().AddDate(0, 0, (age*-1))) {
+			fmt.Printf("Removing directory %q as it is older than %v days and empty.\n", fp, age)
+		}
+	} else {
+		if fi.ModTime().Before(time.Now().AddDate(0, 0, (age * -1))) {
+			fmt.Printf("Removing file %q as it is older than %v days.\n", fp, age)
 		}
 	}
 	return nil
+}
+
+func isEmpty(name string) (bool, error) {
+	f, err := os.Open(name)
+	if err != nil {
+		return false, err
+	}
+	defer f.Close()
+
+	_, err = f.Readdirnames(1)
+	if err == io.EOF {
+		return true, nil
+	}
+	return false, err
 }
