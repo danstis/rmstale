@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"path"
 	"time"
 )
 
@@ -28,17 +29,9 @@ func main() {
 			os.Exit(1)
 		}
 	}
-
-	files, err := ioutil.ReadDir(*path)
-	if err != nil {
+	if err := removeFiles(*path, *age); err != nil {
 		fmt.Printf("failed to read directory: %v\n", err)
 		os.Exit(1)
-	}
-
-	for _, file := range files {
-		if file.ModTime().Before(time.Now().AddDate(0, 0, (*age * -1))) {
-			fmt.Printf("Deleting %q which is old\n", file.Name())
-		}
 	}
 }
 
@@ -81,4 +74,24 @@ func posString(slice []string, element string) int {
 // containsString returns true iff slice contains element
 func containsString(slice []string, element string) bool {
 	return !(posString(slice, element) == -1)
+}
+
+func removeFiles(fp string, age int) error {
+	items, err := ioutil.ReadDir(fp)
+	if err != nil {
+		return err
+	}
+
+	for _, item := range items {
+		if item.Mode().IsDir() {
+			if err := removeFiles(path.Join(fp, item.Name()), age); err != nil {
+				return err
+			}
+		} else {
+			if item.ModTime().Before(time.Now().AddDate(0, 0, (age * -1))) {
+				fmt.Printf("Deleting %q which is old\n", path.Join(fp, item.Name()))
+			}
+		}
+	}
+	return nil
 }
