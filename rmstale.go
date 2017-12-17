@@ -26,7 +26,7 @@ func main() {
 	}
 
 	if !*confirm {
-		fmt.Printf("WARNING: Will remove files and folders recursively below %q older than %v days. Continue? (yes/no):", folder, age)
+		fmt.Printf("WARNING: Will remove files and folders recursively below %q older than %v days. Continue? (y/n):", folder, age)
 		if !askForConfirmation() {
 			fmt.Println("Operation not confirmed, exiting.")
 			os.Exit(1)
@@ -56,7 +56,7 @@ func askForConfirmation() bool {
 	} else if containsString(nokayResponses, response) {
 		return false
 	} else {
-		fmt.Println("Please type yes or no and then press enter:")
+		fmt.Println("Please type y or n and then press enter:")
 		return askForConfirmation()
 	}
 }
