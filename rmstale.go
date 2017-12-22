@@ -36,6 +36,12 @@ func main() {
 		fmt.Printf("failed to read directory: %v\n", err)
 		os.Exit(1)
 	}
+
+	// Run a second time to remove empty folders
+	if err := filepath.Walk(folder, walkfunc); err != nil {
+		fmt.Printf("failed to read directory: %v\n", err)
+		os.Exit(1)
+	}
 }
 
 // askForConfirmation uses Scanln to parse user input. A user must type in "yes" or "no" and
@@ -86,11 +92,15 @@ func walkfunc(fp string, fi os.FileInfo, err error) error {
 			return err
 		}
 		if empty && fi.ModTime().Before(time.Now().AddDate(0, 0, (age*-1))) {
-			fmt.Printf("Removing directory %q as it is older than %v days and empty.\n", fp, age)
+			if err = removeItem(fp); err != nil {
+				return err
+			}
 		}
 	} else {
 		if fi.ModTime().Before(time.Now().AddDate(0, 0, (age * -1))) {
-			fmt.Printf("Removing file %q as it is older than %v days.\n", fp, age)
+			if err = removeItem(fp); err != nil {
+				return err
+			}
 		}
 	}
 	return nil
@@ -108,4 +118,10 @@ func isEmpty(name string) (bool, error) {
 		return true, nil
 	}
 	return false, err
+}
+
+func removeItem(fp string) error {
+	fmt.Printf("Removing %q\n", fp)
+	err := os.Remove(fp)
+	return err
 }
