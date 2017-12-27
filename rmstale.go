@@ -10,6 +10,8 @@ import (
 	"time"
 )
 
+// AppVersion controls the application version number
+var AppVersion string = "0.0.0"
 var age int
 var folder string
 
@@ -17,8 +19,14 @@ func main() {
 	flag.StringVar(&folder, "path", os.TempDir(), "Path to check for stale files.")
 	flag.IntVar(&age, "age", 0, "Age in days to check for file modification.")
 	confirm := flag.Bool("y", false, "Don't prompt for confirmation.")
+	version := flag.Bool("version", false, "Display version information.")
 
 	flag.Parse()
+
+	if *version {
+		fmt.Printf("rmstale v%v\n", AppVersion)
+		os.Exit(0)
+	}
 
 	if age == 0 {
 		flag.PrintDefaults()
