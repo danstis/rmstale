@@ -10,7 +10,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 *
 
 ### Changed
-* ([#6](https://github.com/danstis/rmstale/issues/6)) Disable removal of the root folder.
+* 
 
 ### Fixed
 *
