@@ -36,7 +36,7 @@ func main() {
 	}
 
 	if !*confirm {
-		fmt.Printf("WARNING: Will remove files and folders recursively below %q older than %v days. Continue? (y/n):", filepath.FromSlash(folder), age)
+		fmt.Printf("WARNING: Will remove files and folders recursively below '%v' older than %v days. Continue? (y/n):", filepath.FromSlash(folder), age)
 		if !askForConfirmation() {
 			fmt.Println("Operation not confirmed, exiting.")
 			os.Exit(1)
@@ -149,9 +149,9 @@ func isStale(fi os.FileInfo) bool {
 
 func removeItem(fp string) error {
 	if fp == folder {
-		return fmt.Errorf("not removing folder %q as it is the root folder", filepath.FromSlash(fp))
+		return fmt.Errorf("not removing folder '%v' as it is the root folder", filepath.FromSlash(fp))
 	}
-	fmt.Printf("Removing %q\n", filepath.FromSlash(fp))
+	fmt.Printf("Removing '%v'\n", filepath.FromSlash(fp))
 	err := os.Remove(fp)
 	return err
 }
