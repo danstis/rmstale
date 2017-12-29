@@ -129,6 +129,9 @@ func isEmpty(name string) (bool, error) {
 }
 
 func removeItem(fp string) error {
+	if fp == folder {
+		return fmt.Errorf("not removing folder %q as it is the root folder", fp)
+	}
 	fmt.Printf("Removing %q\n", fp)
 	err := os.Remove(fp)
 	return err
