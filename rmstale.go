@@ -4,9 +4,10 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"os"
-	"path/filepath"
+	"path"
 	"time"
 )
 
@@ -40,15 +41,9 @@ func main() {
 			os.Exit(1)
 		}
 	}
-	if err := filepath.Walk(folder, walkfunc); err != nil {
-		fmt.Printf("failed to read directory: %v\n", err)
-		os.Exit(1)
-	}
 
-	// Run a second time to remove empty folders
-	if err := filepath.Walk(folder, walkfunc); err != nil {
-		fmt.Printf("failed to read directory: %v\n", err)
-		os.Exit(1)
+	if err := procDir(folder); err != nil {
+		fmt.Printf("Something went wrong: %v", err)
 	}
 }
 
@@ -93,24 +88,43 @@ func containsString(slice []string, element string) bool {
 	return !(posString(slice, element) == -1)
 }
 
-func walkfunc(fp string, fi os.FileInfo, err error) error {
-	if fi.IsDir() {
-		empty, err := isEmpty(fp)
-		if err != nil {
-			return err
-		}
-		if empty && fi.ModTime().Before(time.Now().AddDate(0, 0, (age*-1))) {
-			if err = removeItem(fp); err != nil {
+func procDir(fp string) error {
+	// get the fileInfo for the directory
+	di, err := os.Stat(fp)
+	if err != nil {
+		return err
+	}
+
+	// get the directory contents
+	contents, err := ioutil.ReadDir(fp)
+	if err != nil {
+		return err
+	}
+
+	for _, item := range contents {
+		if item.IsDir() {
+			if err := procDir(path.Join(fp, item.Name())); err != nil {
 				return err
 			}
-		}
-	} else {
-		if fi.ModTime().Before(time.Now().AddDate(0, 0, (age * -1))) {
-			if err = removeItem(fp); err != nil {
-				return err
+		} else {
+			if isStale(item) {
+				if err = removeItem(path.Join(fp, item.Name())); err != nil {
+					return err
+				}
 			}
 		}
 	}
+
+	empty, err := isEmpty(fp)
+	if err != nil {
+		return err
+	}
+	if empty && isStale(di) {
+		if err = removeItem(fp); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -126,6 +140,10 @@ func isEmpty(name string) (bool, error) {
 		return true, nil
 	}
 	return false, err
+}
+
+func isStale(fi os.FileInfo) bool {
+	return fi.ModTime().Before(time.Now().AddDate(0, 0, (age * -1)))
 }
 
 func removeItem(fp string) error {
