@@ -16,6 +16,11 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 *
 -->
 
+## [Unreleased]
+
+### Fixed
+* ([#10](https://github.com/danstis/rmstale/issues/10)) Fix slash direction to match the OS.
+
 ## [v0.3.0]
 
 ### Changed
