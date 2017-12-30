@@ -16,7 +16,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 *
 -->
 
-## [Unreleased]
+## [v0.4.0]
 
 ### Changed
 * ([#5](https://github.com/danstis/rmstale/issues/5)) Change confirmation code for go-prompt package.
@@ -45,7 +45,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 
 * Removes files based on age.
 
-[unreleased]: https://github.com/danstis/rmstale/compare/v0.3.0...HEAD
+[unreleased]: https://github.com/danstis/rmstale/compare/v0.4.0...HEAD
+[v0.4.0]: https://github.com/danstis/rmstale/compare/v0.3.0...v0.4.0
 [v0.3.0]: https://github.com/danstis/rmstale/compare/v0.2.0...v0.3.0
 [v0.2.0]: https://github.com/danstis/rmstale/compare/v0.1.0...v0.2.0
 [v0.1.0]: https://github.com/danstis/rmstale/compare/v0.0.1...v0.1.0
