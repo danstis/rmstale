@@ -23,4 +23,4 @@
 
 [[constraint]]
   name = "github.com/segmentio/go-prompt"
-  version = "1.2.0"
+  revision = "f0d19b6901ade831d5a3204edc0d6a7d6457fbb2"
