@@ -15,3 +15,6 @@
 
 # VSCode items
 .vscode
+
+# Go Dep items:
+vendor

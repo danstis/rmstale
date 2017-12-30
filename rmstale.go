@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"os"
 	"path"
 	"path/filepath"
 	"time"
+
+	prompt "github.com/segmentio/go-prompt"
 )
 
 // AppVersion controls the application version number
@@ -36,8 +37,7 @@ func main() {
 	}
 
 	if !*confirm {
-		fmt.Printf("WARNING: Will remove files and folders recursively below '%v' older than %v days. Continue? (y/n):", filepath.FromSlash(folder), age)
-		if !askForConfirmation() {
+		if ok := prompt.Confirm("WARNING: Will remove files and folders recursively below '%v' older than %v days. Continue?", filepath.FromSlash(folder), age); !ok {
 			fmt.Println("Operation not confirmed, exiting.")
 			os.Exit(1)
 		}
@@ -46,47 +46,6 @@ func main() {
 	if err := procDir(folder); err != nil {
 		fmt.Printf("Something went wrong: %v", err)
 	}
-}
-
-// askForConfirmation uses Scanln to parse user input. A user must type in "yes" or "no" and
-// then press enter. It has fuzzy matching, so "y", "Y", "yes", "YES", and "Yes" all count as
-// confirmations. If the input is not recognized, it will ask again. The function does not return
-// until it gets a valid response from the user. Typically, you should use fmt to print out a question
-// before calling askForConfirmation. E.g. fmt.Println("WARNING: Are you sure? (yes/no)")
-func askForConfirmation() bool {
-	var response string
-	_, err := fmt.Scanln(&response)
-	if err != nil {
-		log.Fatal(err)
-	}
-	okayResponses := []string{"y", "Y", "yes", "Yes", "YES"}
-	nokayResponses := []string{"n", "N", "no", "No", "NO"}
-	if containsString(okayResponses, response) {
-		return true
-	} else if containsString(nokayResponses, response) {
-		return false
-	} else {
-		fmt.Println("Please type y or n and then press enter:")
-		return askForConfirmation()
-	}
-}
-
-// You might want to put the following two functions in a separate utility package.
-
-// posString returns the first index of element in slice.
-// If slice does not contain element, returns -1.
-func posString(slice []string, element string) int {
-	for index, elem := range slice {
-		if elem == element {
-			return index
-		}
-	}
-	return -1
-}
-
-// containsString returns true iff slice contains element
-func containsString(slice []string, element string) bool {
-	return !(posString(slice, element) == -1)
 }
 
 func procDir(fp string) error {
@@ -129,6 +88,7 @@ func procDir(fp string) error {
 	return nil
 }
 
+// isEmpty checks if a directory is empty.
 func isEmpty(name string) (bool, error) {
 	f, err := os.Open(name)
 	if err != nil {
@@ -143,10 +103,12 @@ func isEmpty(name string) (bool, error) {
 	return false, err
 }
 
+// isStale checks if the file/directory is older than age days old.
 func isStale(fi os.FileInfo) bool {
 	return fi.ModTime().Before(time.Now().AddDate(0, 0, (age * -1)))
 }
 
+// removeItem removes an item from the filesystem.
 func removeItem(fp string) error {
 	if fp == folder {
 		return fmt.Errorf("not removing folder '%v' as it is the root folder", filepath.FromSlash(fp))
