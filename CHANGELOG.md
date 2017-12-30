@@ -18,6 +18,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 
 ## [Unreleased]
 
+### Changed
+* ([#5](https://github.com/danstis/rmstale/issues/5)) Change confirmation code for go-prompt package.
+
 ### Fixed
 * ([#10](https://github.com/danstis/rmstale/issues/10)) Fix slash direction to match the OS.
 
