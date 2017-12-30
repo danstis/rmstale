@@ -68,9 +68,7 @@ func procDir(fp string) error {
 			}
 		} else {
 			if isStale(item) {
-				if err = removeItem(path.Join(fp, item.Name())); err != nil {
-					return err
-				}
+				removeItem(path.Join(fp, item.Name()))
 			}
 		}
 	}
@@ -80,9 +78,7 @@ func procDir(fp string) error {
 		return err
 	}
 	if empty && isStale(di) {
-		if err = removeItem(fp); err != nil {
-			return err
-		}
+		removeItem(fp)
 	}
 
 	return nil
@@ -109,11 +105,12 @@ func isStale(fi os.FileInfo) bool {
 }
 
 // removeItem removes an item from the filesystem.
-func removeItem(fp string) error {
+func removeItem(fp string) {
 	if fp == folder {
-		return fmt.Errorf("not removing folder '%v' as it is the root folder", filepath.FromSlash(fp))
+		fmt.Printf("-Not removing folder '%v' as it is the root folder...", filepath.FromSlash(fp))
 	}
-	fmt.Printf("Removing '%v'\n", filepath.FromSlash(fp))
-	err := os.Remove(fp)
-	return err
+	fmt.Printf("-Removing '%v'...\n", filepath.FromSlash(fp))
+	if err := os.Remove(fp); err != nil {
+		fmt.Printf("ERROR: %v\n", err)
+	}
 }
