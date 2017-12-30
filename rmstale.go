@@ -37,8 +37,7 @@ func main() {
 	}
 
 	if !*confirm {
-		fmt.Printf("WARNING: Will remove files and folders recursively below '%v' older than %v days. Continue? (y/n):", filepath.FromSlash(folder), age)
-		if ok := prompt.Confirm(); !ok {
+		if ok := prompt.Confirm("WARNING: Will remove files and folders recursively below '%v' older than %v days. Continue?", filepath.FromSlash(folder), age); !ok {
 			fmt.Println("Operation not confirmed, exiting.")
 			os.Exit(1)
 		}
