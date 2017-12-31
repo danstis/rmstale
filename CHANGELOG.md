@@ -7,14 +7,26 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 <!-- ## [Unreleased]
 
 ### Added
-*
+* 
 
 ### Changed
 * 
 
 ### Fixed
-*
+* 
 -->
+
+## [Unreleased]
+
+### Added
+* 
+
+### Changed
+* ([#12](https://github.com/danstis/rmstale/issues/12)) Update readme.
+
+### Fixed
+* 
+
 
 ## [v0.4.0]
 
