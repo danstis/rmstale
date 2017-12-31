@@ -31,7 +31,7 @@ To install rmstale:
 ```
 >: rmstale -version
 
-rmstale v0.4.0
+rmstale v1.0.0
 ```
 
 ```
