@@ -16,17 +16,11 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 * 
 -->
 
-## [Unreleased]
-
-### Added
-* 
+## [v1.0.0]
 
 ### Changed
-* ([#12](https://github.com/danstis/rmstale/issues/12)) Update readme.
-
-### Fixed
-* 
-
+* ([#3](https://github.com/danstis/rmstale/issues/3)) Update readme.
+* ([#12](https://github.com/danstis/rmstale/issues/12)) Update build to create binaries for other OSes.
 
 ## [v0.4.0]
 
@@ -57,7 +51,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 
 * Removes files based on age.
 
-[unreleased]: https://github.com/danstis/rmstale/compare/v0.4.0...HEAD
+[unreleased]: https://github.com/danstis/rmstale/compare/v1.0.0...HEAD
+[v1.0.0]: https://github.com/danstis/rmstale/compare/v0.4.0...v1.0.0
 [v0.4.0]: https://github.com/danstis/rmstale/compare/v0.3.0...v0.4.0
 [v0.3.0]: https://github.com/danstis/rmstale/compare/v0.2.0...v0.3.0
 [v0.2.0]: https://github.com/danstis/rmstale/compare/v0.1.0...v0.2.0

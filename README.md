@@ -21,17 +21,17 @@ To install rmstale:
 
 | Flag | Description |
 | -- | -- |
-| age | Period in days before an item is considered stale |
-| path | Path to a folder to process |
-| y | Allows for processing without confirmation propmt, useful for scheduling |
-| version | Displays the version of rmstale that is currently running |
+| -age | Period in days before an item is considered stale |
+| -path | Path to a folder to process |
+| -y | Allows for processing without confirmation propmt, useful for scheduling |
+| -version | Displays the version of rmstale that is currently running |
 
 ### Usage examples:
 
 ```
 >: rmstale -version
 
-rmstale v0.4.0
+rmstale v1.0.0
 ```
 
 ```
@@ -55,6 +55,7 @@ Want to contribute? Great:
 * Clone the repo to your development machine, note the dependencies for this project are as follows:
 	* Go version 1.8 or above
 	* Go dep for dependency management - https://github.com/golang/dep
+* Run `dep ensure` to create the vendor directory containing the project dependencies.
 * Create a new branch for the feature that you want to contribute.
 * Develop your new feature as you see fit.
 * Once you have a working copy of your code, create a pull request against this project.
