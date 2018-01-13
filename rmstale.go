@@ -14,7 +14,7 @@ import (
 )
 
 // AppVersion controls the application version number
-var AppVersion string = "0.0.0"
+var AppVersion = "0.0.0"
 var age int
 var folder string
 
