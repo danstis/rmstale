@@ -44,7 +44,7 @@ func main() {
 	}
 
 	if err := procDir(folder); err != nil {
-		fmt.Printf("Something went wrong: %v", err)
+		fmt.Printf("Something went wrong: %v\n", err)
 	}
 }
 
@@ -108,6 +108,7 @@ func isStale(fi os.FileInfo) bool {
 func removeItem(fp string) {
 	if fp == folder {
 		fmt.Printf("-Not removing folder '%v' as it is the root folder...\n", filepath.FromSlash(fp))
+		return
 	}
 	fmt.Printf("-Removing '%v'...\n", filepath.FromSlash(fp))
 	if err := os.Remove(fp); err != nil {
