@@ -107,7 +107,7 @@ func isStale(fi os.FileInfo) bool {
 // removeItem removes an item from the filesystem.
 func removeItem(fp string) {
 	if fp == folder {
-		fmt.Printf("-Not removing folder '%v' as it is the root folder...", filepath.FromSlash(fp))
+		fmt.Printf("-Not removing folder '%v' as it is the root folder...\n", filepath.FromSlash(fp))
 	}
 	fmt.Printf("-Removing '%v'...\n", filepath.FromSlash(fp))
 	if err := os.Remove(fp); err != nil {
