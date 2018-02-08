@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Do not remove this test for UTF-8: if “Ω” doesn’t appear as greek uppercase omega letter enclosed in quotation marks, you should use an editor that supports UTF-8, not this one. -->
+<package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
+  <metadata>
+    <id>rmstale</id>
+    <version>__REPLACE_VERSION__</version>
+    <packageSourceUrl>https://github.com/danstis/rmstale</packageSourceUrl>
+    <owners>Dan Anstis</owners>
+    <title>rmstale</title>
+    <authors>Dan Ansits</authors>
+    <projectUrl>https://github.com/danstis/rmstale</projectUrl>
+    <licenseUrl>https://github.com/danstis/rmstale/master/LICENSE</licenseUrl>
+    <projectSourceUrl>https://github.com/danstis/rmstale</projectSourceUrl>
+    <docsUrl>https://github.com/danstis/rmstale/blob/master/README.md</docsUrl>
+    <bugTrackerUrl>https://github.com/danstis/rmstale/issues</bugTrackerUrl>
+    <tags>rmstale delete stale</tags>
+    <summary>rmstale removes stale files.</summary>
+    <description>rmstale is a tool to remove stale files recursively below a given directory. Files and folders older than a defined period are removed.</description>
+  </metadata>
+  <files>
+    <file src="bin\windows\rmstale.exe" target="bin" />
+  </files>
+</package>

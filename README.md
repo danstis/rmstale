@@ -9,13 +9,15 @@ Some examples for use:
 
 ## Install instructions
 
-To install rmstale:  
+### Install with Chocolatey:
+
+`choco install rmstale`
+
+### Install rmstale manually:  
 1. From the [GitHub releases page](https://github.com/danstis/rmstale/releases) download the latest binary for your operating system.
 1. Place the downloaded file into your desired location.
 
 ## Usage instructions
-
-* rmstale is designed to be used as a command line tool, to see the latest usage instructions type `rmstale` at the command prompt:
 
 ### Command line flags:
 
