@@ -1,0 +1,9 @@
+VERIFICATION
+Verification is intended to assist the Chocolatey moderators and community
+in verifying that this package's contents are trustworthy.
+ 
+This package is published by the rmstale Project itself. Any binaries will be 
+identical to other package types published by the project, in particular
+the windows rmstale.exe binary contained within the released 
+rmstale-<version>_Windows.zip file on the GitHub project here: 
+https://github.com/danstis/rmstale/releases.
