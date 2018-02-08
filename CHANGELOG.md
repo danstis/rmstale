@@ -9,6 +9,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 * New|Changed|Fixed - ([#1](https://github.com/danstis/rmstale/issues/1)) Description
 -->
 
+## [v1.1.0]
+
+* New - Chocolatey package deployment on build.
+
 ## [v1.0.1]
 
 * Fixed - ([#22](https://github.com/danstis/rmstale/issues/22)) Stop app from incorrectly removing root folder.
@@ -39,7 +43,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 
 * New - Removes files based on age.
 
-[unreleased]: https://github.com/danstis/rmstale/compare/v1.0.1...HEAD
+[unreleased]: https://github.com/danstis/rmstale/compare/v1.1.0...HEAD
+[v1.1.0]: https://github.com/danstis/rmstale/compare/v1.0.1...v1.1.0
 [v1.0.1]: https://github.com/danstis/rmstale/compare/v1.0.0...v1.0.1
 [v1.0.0]: https://github.com/danstis/rmstale/compare/v0.4.0...v1.0.0
 [v0.4.0]: https://github.com/danstis/rmstale/compare/v0.3.0...v0.4.0
