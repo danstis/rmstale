@@ -16,8 +16,11 @@
     <tags>rmstale delete stale</tags>
     <summary>rmstale removes stale files.</summary>
     <description>rmstale is a tool to remove stale files recursively below a given directory. Files and folders older than a defined period are removed.</description>
+    <releaseNotes>https://github.com/danstis/rmstale/blob/master/CHANGELOG.md</releaseNotes>
   </metadata>
   <files>
     <file src="bin\windows\rmstale.exe" target="bin" />
+    <file src="LICENSE" target="bin" />
+    <file src="VERIFICATION.txt" target="bin" />
   </files>
 </package>
