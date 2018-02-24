@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/google/logger"
 	prompt "github.com/segmentio/go-prompt"
 )
 
@@ -23,6 +24,8 @@ func main() {
 	flag.IntVar(&age, "age", 0, "Age in days to check for file modification.")
 	confirm := flag.Bool("y", false, "Don't prompt for confirmation.")
 	version := flag.Bool("version", false, "Display version information.")
+
+	defer logger.Init("rmstale", true, true, ioutil.Discard).Close()
 
 	flag.Parse()
 
@@ -38,13 +41,15 @@ func main() {
 
 	if !*confirm {
 		if ok := prompt.Confirm("WARNING: Will remove files and folders recursively below '%v' older than %v days. Continue?", filepath.FromSlash(folder), age); !ok {
-			fmt.Println("Operation not confirmed, exiting.")
+			logger.Warning("Operation not confirmed, exiting.")
 			os.Exit(1)
 		}
 	}
 
+	logger.Infof("rmstale started against folder '%v' older than %v days.", filepath.FromSlash(folder), age)
+
 	if err := procDir(folder); err != nil {
-		fmt.Printf("Something went wrong: %v\n", err)
+		logger.Errorf("Something went wrong: %v", err)
 	}
 }
 
@@ -107,11 +112,11 @@ func isStale(fi os.FileInfo) bool {
 // removeItem removes an item from the filesystem.
 func removeItem(fp string) {
 	if fp == folder {
-		fmt.Printf("-Not removing folder '%v' as it is the root folder...\n", filepath.FromSlash(fp))
+		logger.Infof("Not removing folder '%v' as it is the root folder...\n", filepath.FromSlash(fp))
 		return
 	}
-	fmt.Printf("-Removing '%v'...\n", filepath.FromSlash(fp))
+	logger.Infof("Removing '%v'...", filepath.FromSlash(fp))
 	if err := os.Remove(fp); err != nil {
-		fmt.Printf("ERROR: %v\n", err)
+		logger.Errorf("%v", err)
 	}
 }
