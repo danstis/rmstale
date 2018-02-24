@@ -9,6 +9,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 * New|Changed|Fixed - ([#1](https://github.com/danstis/rmstale/issues/1)) Description
 -->
 
+## [v1.2.0]
+
+* New - ([#20](https://github.com/danstis/rmstale/issues/20)) Add logging to syslog/event log.
+
 ## [v1.1.1]
 
 * Fixed - Chocolatey moderation feedback incorporated.
