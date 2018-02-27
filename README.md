@@ -1,5 +1,8 @@
 # rmstale
 
+[![Build status](https://ci.appveyor.com/api/projects/status/h83tgvpdo8icnl47/branch/master?svg=true)](https://ci.appveyor.com/project/danstis/rmstale/branch/master)
+[![Chocolatey](https://img.shields.io/chocolatey/v/rmstale.svg)](https://chocolatey.org/packages/rmstale)
+
 rmstale is a tool to remove stale files recursively below a given directory.  
 Files and folders older than a defined period are removed.
 
