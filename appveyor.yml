@@ -97,11 +97,11 @@ build_script:
     }
 
 
-    cd $ChocoPath
+    # cd $ChocoPath
 
-    choco apikey -k $env:ChocoApiKey -source https://push.chocolatey.org/
+    # choco apikey -k $env:ChocoApiKey -source https://push.chocolatey.org/
 
-    choco push -s https://push.chocolatey.org/
+    # choco push -s https://push.chocolatey.org/
 
 
 
@@ -112,11 +112,8 @@ build_script:
     #$blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
 artifacts:
 - path: rmstale-%GitVersion_SemVer%_Windows.zip
-  name: rmstale-%GitVersion_SemVer%_Windows.zip
 - path: rmstale-%GitVersion_SemVer%_Linux.zip
-  name: rmstale-%GitVersion_SemVer%_Linux.zip
 - path: rmstale-%GitVersion_SemVer%_Darwin.zip
-  name: rmstale-%GitVersion_SemVer%_Darwin.zip
 - path: '**\*.nupkg'
   name: chocolatey-rmstale.nupkg
 deploy:
@@ -127,3 +124,5 @@ deploy:
   artifact: /rmstale-.*/
   draft: false
   force_update: true
+  on:
+    appveyor_repo_tag: true        # deploy on tag push only
