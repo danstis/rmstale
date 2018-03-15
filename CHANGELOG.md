@@ -9,6 +9,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 * New|Changed|Fixed - ([#1](https://github.com/danstis/rmstale/issues/1)) Description
 -->
 
+## [Unreleased]
+
+* New - Add coverage reporting.
+
 ## [v1.2.3]
 
 * New - Added tests.
