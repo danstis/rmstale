@@ -28,10 +28,15 @@ cache: c:\gopath\src\github.com\danstis\rmstale\vendor
 build_script:
 - ps: gitversion /output buildserver
 - ps: dep ensure
-- ps: $ChocoPath = "$env:APPVEYOR_BUILD_FOLDER\bin\chocolatey"
-- ps: if (!(Test-Path $ChocoPath)) { mkdir $ChocoPath }
 - ps: Write-Host "Version detected as '$env:GitVersion_SemVer'"
-- ps: |
+test_script:
+  - go test -v -coverprofile=coverage.out ./...
+  - goveralls -coverprofile=coverage.out -service=appveyor || exit 0
+  - go vet ./...
+  - megacheck ./...
+  - ps: golint -set_exit_status $(go list ./...)
+after_test:
+  - ps: |
     # Build binaries
     ## Win x86
     $ENV:GOOS = "windows"; $env:GOARCH = "386"
@@ -50,6 +55,8 @@ build_script:
 
     ## Chocolatey Build
     # Replace version in nuspec
+    $ChocoPath = "$env:APPVEYOR_BUILD_FOLDER\bin\chocolatey"
+    if (!(Test-Path $ChocoPath)) { mkdir $ChocoPath }
     $content = [System.IO.File]::ReadAllText("$env:APPVEYOR_BUILD_FOLDER\rmstale.nuspec").Replace("__REPLACE_VERSION__", $env:GitVersion_LegacySemVerPadded)
     [System.IO.File]::WriteAllText("$env:APPVEYOR_BUILD_FOLDER\rmstale_build.nuspec", $content)
 
@@ -63,13 +70,6 @@ build_script:
     		Remove-Item $Nuspec -Force
     	}
     }
-test_script:
-  - SET GOOS="windows" && SET GOARCH="amd64"
-  - go test -v -coverprofile=coverage.out ./...
-  - goveralls -coverprofile=coverage.out -service=appveyor || exit 0
-  - go vet ./...
-  - megacheck ./...
-  - ps: golint -set_exit_status $(go list ./...)
 artifacts:
 - path: rmstale-%GitVersion_SemVer%_Windows.zip
   name: rmstale-%GitVersion_SemVer%_Windows.zip
