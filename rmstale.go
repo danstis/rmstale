@@ -16,12 +16,10 @@ import (
 
 // AppVersion controls the application version number
 var AppVersion = "0.0.0"
-var age int
-var folder string
 
 func main() {
-	flag.StringVar(&folder, "path", os.TempDir(), "Path to check for stale files.")
-	flag.IntVar(&age, "age", 0, "Age in days to check for file modification.")
+	folder := flag.String("path", os.TempDir(), "Path to check for stale files.")
+	age := flag.Int("age", 0, "Age in days to check for file modification.")
 	confirm := flag.Bool("y", false, "Don't prompt for confirmation.")
 	version := flag.Bool("version", false, "Display version information.")
 
@@ -34,26 +32,26 @@ func main() {
 		os.Exit(0)
 	}
 
-	if age == 0 {
+	if *age == 0 {
 		flag.PrintDefaults()
 		os.Exit(1)
 	}
 
 	if !*confirm {
-		if ok := prompt.Confirm("WARNING: Will remove files and folders recursively below '%v' older than %v days. Continue?", filepath.FromSlash(folder), age); !ok {
+		if ok := prompt.Confirm("WARNING: Will remove files and folders recursively below '%v' older than %v days. Continue?", filepath.FromSlash(*folder), *age); !ok {
 			logger.Warning("Operation not confirmed, exiting.")
 			os.Exit(1)
 		}
 	}
 
-	logger.Infof("rmstale started against folder '%v' older than %v days.", filepath.FromSlash(folder), age)
+	logger.Infof("rmstale started against folder '%v' for contents older than %v days.", filepath.FromSlash(*folder), *age)
 
-	if err := procDir(folder); err != nil {
+	if err := procDir(*folder, *folder, *age); err != nil {
 		logger.Errorf("Something went wrong: %v", err)
 	}
 }
 
-func procDir(fp string) error {
+func procDir(fp, rootFolder string, age int) error {
 	// get the fileInfo for the directory
 	di, err := os.Stat(fp)
 	if err != nil {
@@ -68,12 +66,12 @@ func procDir(fp string) error {
 
 	for _, item := range contents {
 		if item.IsDir() {
-			if err := procDir(path.Join(fp, item.Name())); err != nil {
+			if err := procDir(path.Join(fp, item.Name()), rootFolder, age); err != nil {
 				return err
 			}
 		} else {
-			if isStale(item) {
-				removeItem(path.Join(fp, item.Name()))
+			if isStale(item, age) {
+				removeItem(path.Join(fp, item.Name()), rootFolder)
 			}
 		}
 	}
@@ -82,8 +80,8 @@ func procDir(fp string) error {
 	if err != nil {
 		return err
 	}
-	if empty && isStale(di) {
-		removeItem(fp)
+	if empty && isStale(di, age) {
+		removeItem(fp, rootFolder)
 	}
 
 	return nil
@@ -105,13 +103,13 @@ func isEmpty(name string) (bool, error) {
 }
 
 // isStale checks if the file/directory is older than age days old.
-func isStale(fi os.FileInfo) bool {
+func isStale(fi os.FileInfo, age int) bool {
 	return fi.ModTime().Before(time.Now().AddDate(0, 0, (age * -1)))
 }
 
 // removeItem removes an item from the filesystem.
-func removeItem(fp string) {
-	if fp == folder {
+func removeItem(fp, rootFolder string) {
+	if fp == rootFolder {
 		logger.Infof("Not removing folder '%v' as it is the root folder...\n", filepath.FromSlash(fp))
 		return
 	}
