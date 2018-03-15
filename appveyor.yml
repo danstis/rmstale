@@ -37,39 +37,39 @@ test_script:
   - ps: golint -set_exit_status $(go list ./...)
 after_test:
   - ps: |
-    # Build binaries
-    ## Win x86
-    $ENV:GOOS = "windows"; $env:GOARCH = "386"
-    go build -ldflags "-X main.AppVersion=$env:GitVersion_SemVer" -o .\bin\windows\rmstale.exe rmstale.go
-    7z a ("rmstale-{0}_Windows.zip" -f $env:GitVersion_SemVer) $env:APPVEYOR_BUILD_FOLDER\bin\windows\rmstale.exe
+      # Build binaries
+      ## Win x86
+      $ENV:GOOS = "windows"; $env:GOARCH = "386"
+      go build -ldflags "-X main.AppVersion=$env:GitVersion_SemVer" -o .\bin\windows\rmstale.exe rmstale.go
+      7z a ("rmstale-{0}_Windows.zip" -f $env:GitVersion_SemVer) $env:APPVEYOR_BUILD_FOLDER\bin\windows\rmstale.exe
 
-    ## Linux x86
-    $ENV:GOOS = "linux"; $env:GOARCH = "386"
-    go build -ldflags "-X main.AppVersion=$env:GitVersion_SemVer" -o .\bin\linux\rmstale rmstale.go
-    7z a ("rmstale-{0}_Linux.zip" -f $env:GitVersion_SemVer) $env:APPVEYOR_BUILD_FOLDER\bin\linux\rmstale
+      ## Linux x86
+      $ENV:GOOS = "linux"; $env:GOARCH = "386"
+      go build -ldflags "-X main.AppVersion=$env:GitVersion_SemVer" -o .\bin\linux\rmstale rmstale.go
+      7z a ("rmstale-{0}_Linux.zip" -f $env:GitVersion_SemVer) $env:APPVEYOR_BUILD_FOLDER\bin\linux\rmstale
 
-    ## Mac x86
-    $ENV:GOOS = "darwin"; $env:GOARCH = "386"
-    go build -ldflags "-X main.AppVersion=$env:GitVersion_SemVer" -o .\bin\darwin\rmstale rmstale.go
-    7z a ("rmstale-{0}_Darwin.zip" -f $env:GitVersion_SemVer) $env:APPVEYOR_BUILD_FOLDER\bin\darwin\rmstale
+      ## Mac x86
+      $ENV:GOOS = "darwin"; $env:GOARCH = "386"
+      go build -ldflags "-X main.AppVersion=$env:GitVersion_SemVer" -o .\bin\darwin\rmstale rmstale.go
+      7z a ("rmstale-{0}_Darwin.zip" -f $env:GitVersion_SemVer) $env:APPVEYOR_BUILD_FOLDER\bin\darwin\rmstale
 
-    ## Chocolatey Build
-    # Replace version in nuspec
-    $ChocoPath = "$env:APPVEYOR_BUILD_FOLDER\bin\chocolatey"
-    if (!(Test-Path $ChocoPath)) { mkdir $ChocoPath }
-    $content = [System.IO.File]::ReadAllText("$env:APPVEYOR_BUILD_FOLDER\rmstale.nuspec").Replace("__REPLACE_VERSION__", $env:GitVersion_LegacySemVerPadded)
-    [System.IO.File]::WriteAllText("$env:APPVEYOR_BUILD_FOLDER\rmstale_build.nuspec", $content)
+      ## Chocolatey Build
+      # Replace version in nuspec
+      $ChocoPath = "$env:APPVEYOR_BUILD_FOLDER\bin\chocolatey"
+      if (!(Test-Path $ChocoPath)) { mkdir $ChocoPath }
+      $content = [System.IO.File]::ReadAllText("$env:APPVEYOR_BUILD_FOLDER\rmstale.nuspec").Replace("__REPLACE_VERSION__", $env:GitVersion_LegacySemVerPadded)
+      [System.IO.File]::WriteAllText("$env:APPVEYOR_BUILD_FOLDER\rmstale_build.nuspec", $content)
 
-    try {
-    	$Nuspec = "$env:APPVEYOR_BUILD_FOLDER\rmstale_build.nuspec"
-    	choco pack $Nuspec --outputdirectory $ChocoPath
-    }
+      try {
+        $Nuspec = "$env:APPVEYOR_BUILD_FOLDER\rmstale_build.nuspec"
+        choco pack $Nuspec --outputdirectory $ChocoPath
+      }
 
-    finally {
-    	if (Test-Path $Nuspec) {
-    		Remove-Item $Nuspec -Force
-    	}
-    }
+      finally {
+        if (Test-Path $Nuspec) {
+          Remove-Item $Nuspec -Force
+        }
+      }
 artifacts:
 - path: rmstale-%GitVersion_SemVer%_Windows.zip
   name: rmstale-%GitVersion_SemVer%_Windows.zip
