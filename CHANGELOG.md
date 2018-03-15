@@ -9,6 +9,13 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 * New|Changed|Fixed - ([#1](https://github.com/danstis/rmstale/issues/1)) Description
 -->
 
+## [v1.2.3]
+
+* New - Added tests.
+* Changed - Update build config to run on all commits.
+* Changed - Remove global variables for flags.
+* Fixed - Logged message updated to make more sense.
+
 ## [v1.2.0]
 
 * New - ([#20](https://github.com/danstis/rmstale/issues/20)) Add logging to syslog/event log.
@@ -51,7 +58,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 
 * New - Removes files based on age.
 
-[unreleased]: https://github.com/danstis/rmstale/compare/v1.1.1...HEAD
+[unreleased]: https://github.com/danstis/rmstale/compare/v1.2.0...HEAD
+[v1.2.3]: https://github.com/danstis/rmstale/compare/v1.2.0...v1.2.3
+[v1.2.0]: https://github.com/danstis/rmstale/compare/v1.1.1...v1.2.0
 [v1.1.1]: https://github.com/danstis/rmstale/compare/v1.0.1...v1.1.1
 [v1.1.0]: https://github.com/danstis/rmstale/compare/v1.0.1...v1.1.0
 [v1.0.1]: https://github.com/danstis/rmstale/compare/v1.0.0...v1.0.1
