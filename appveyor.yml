@@ -26,7 +26,7 @@ build_script:
 - ps: $ChocoPath = "$env:APPVEYOR_BUILD_FOLDER\bin\chocolatey"
 - ps: if (!(Test-Path $ChocoPath)) { mkdir $ChocoPath }
 - ps: Write-Host "Version detected as '$env:GitVersion_SemVer'"
-- ps: >-
+- ps: |
     # Build binaries
     ## Win x86
     $ENV:GOOS = "windows"; $env:GOARCH = "386"
