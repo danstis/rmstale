@@ -4,7 +4,6 @@ pull_requests:
 branches:
   only:
   - master
-skip_non_tags: true
 clone_folder: c:\gopath\src\github.com\danstis\rmstale
 environment:
   GOPATH: c:\gopath
@@ -13,77 +12,41 @@ environment:
   ChocoApiKey:
     secure: iNMxtYIBsXBiXFvLROnort/ceVDsrAVGXa6QIDznzKiBC+yCQmUl3JH6ghAwXAXh
 install:
-- cmd: >-
-    whoami
-
-    pwd
-
-    rm C:\Tools\GitVersion\GitVersion.exe
-
-    choco install gitversion.portable -pre -y
-
-    set PATH=%GOPATH%\bin;c:\go\bin;%USERPROFILE%\go\bin;%PATH%
-
-    go get github.com/golang/dep/cmd/dep
-
-    go version
+  - whoami
+  - pwd
+  - rm C:\Tools\GitVersion\GitVersion.exe
+  - choco install gitversion.portable -pre -y
+  - set PATH=%GOPATH%\bin;c:\go\bin;%USERPROFILE%\go\bin;%PATH%
+  - go get github.com/golang/dep/cmd/dep
+  - go version
 cache: c:\gopath\src\github.com\danstis\rmstale\vendor
 build_script:
+- ps: gitversion /l console /output buildserver
+- ps: dep ensure
+- ps: $ChocoPath = "$env:APPVEYOR_BUILD_FOLDER\bin\chocolatey"
+- ps: if (!(Test-Path $ChocoPath)) { mkdir $ChocoPath }
+- ps: Write-Host "Version detected as '$env:GitVersion_SemVer'"
 - ps: >-
-    gitversion /l console /output buildserver
-
-    dep ensure
-
-
-    $ChocoPath = "$env:APPVEYOR_BUILD_FOLDER\bin\chocolatey"
-
-    if (!(Test-Path $ChocoPath)) {
-    	mkdir $ChocoPath
-    }
-
-
-    Write-Host "Version detected as '$env:GitVersion_SemVer'"
-
-
     # Build binaries
-
     ## Win x86
-
     $ENV:GOOS = "windows"; $env:GOARCH = "386"
-
     go build -ldflags "-X main.AppVersion=$env:GitVersion_SemVer" -o .\bin\windows\rmstale.exe rmstale.go
-
     7z a ("rmstale-{0}_Windows.zip" -f $env:GitVersion_SemVer) $env:APPVEYOR_BUILD_FOLDER\bin\windows\rmstale.exe
 
-
     ## Linux x86
-
     $ENV:GOOS = "linux"; $env:GOARCH = "386"
-
     go build -ldflags "-X main.AppVersion=$env:GitVersion_SemVer" -o .\bin\linux\rmstale rmstale.go
-
     7z a ("rmstale-{0}_Linux.zip" -f $env:GitVersion_SemVer) $env:APPVEYOR_BUILD_FOLDER\bin\linux\rmstale
 
-
     ## Mac x86
-
     $ENV:GOOS = "darwin"; $env:GOARCH = "386"
-
     go build -ldflags "-X main.AppVersion=$env:GitVersion_SemVer" -o .\bin\darwin\rmstale rmstale.go
-
     7z a ("rmstale-{0}_Darwin.zip" -f $env:GitVersion_SemVer) $env:APPVEYOR_BUILD_FOLDER\bin\darwin\rmstale
 
-
-
-
     ## Chocolatey Build
-
     # Replace version in nuspec
-
     $content = [System.IO.File]::ReadAllText("$env:APPVEYOR_BUILD_FOLDER\rmstale.nuspec").Replace("__REPLACE_VERSION__", $env:GitVersion_LegacySemVerPadded)
-
     [System.IO.File]::WriteAllText("$env:APPVEYOR_BUILD_FOLDER\rmstale_build.nuspec", $content)
-
 
     try {
     	$Nuspec = "$env:APPVEYOR_BUILD_FOLDER\rmstale_build.nuspec"
@@ -95,21 +58,6 @@ build_script:
     		Remove-Item $Nuspec -Force
     	}
     }
-
-
-    # cd $ChocoPath
-
-    # choco apikey -k $env:ChocoApiKey -source https://push.chocolatey.org/
-
-    # choco push -s https://push.chocolatey.org/
-
-
-
-
-
-    ########
-
-    #$blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
 artifacts:
 - path: rmstale-%GitVersion_SemVer%_Windows.zip
 - path: rmstale-%GitVersion_SemVer%_Linux.zip
