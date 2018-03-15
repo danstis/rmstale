@@ -21,7 +21,7 @@ install:
   - go version
 cache: c:\gopath\src\github.com\danstis\rmstale\vendor
 build_script:
-- ps: gitversion /l console /output buildserver
+- ps: gitversion /output buildserver
 - ps: dep ensure
 - ps: $ChocoPath = "$env:APPVEYOR_BUILD_FOLDER\bin\chocolatey"
 - ps: if (!(Test-Path $ChocoPath)) { mkdir $ChocoPath }
@@ -60,8 +60,11 @@ build_script:
     }
 artifacts:
 - path: rmstale-%GitVersion_SemVer%_Windows.zip
+  name: rmstale-%GitVersion_SemVer%_Windows.zip
 - path: rmstale-%GitVersion_SemVer%_Linux.zip
+  name: rmstale-%GitVersion_SemVer%_Linux.zip
 - path: rmstale-%GitVersion_SemVer%_Darwin.zip
+  name: rmstale-%GitVersion_SemVer%_Darwin.zip
 - path: '**\*.nupkg'
   name: chocolatey-rmstale.nupkg
 deploy:
