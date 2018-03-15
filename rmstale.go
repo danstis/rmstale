@@ -44,7 +44,7 @@ func main() {
 		}
 	}
 
-	logger.Infof("rmstale started against folder '%v' older than %v days.", filepath.FromSlash(*folder), *age)
+	logger.Infof("rmstale started against folder '%v' for contents older than %v days.", filepath.FromSlash(*folder), *age)
 
 	if err := procDir(*folder, *folder, *age); err != nil {
 		logger.Errorf("Something went wrong: %v", err)
