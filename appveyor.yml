@@ -18,6 +18,8 @@ install:
 
     pwd
 
+    rm C:\Tools\GitVersion\GitVersion.exe
+
     choco install gitversion.portable -pre -y
 
     set PATH=%GOPATH%\bin;c:\go\bin;%USERPROFILE%\go\bin;%PATH%
