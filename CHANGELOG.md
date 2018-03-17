@@ -9,7 +9,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 * New|Changed|Fixed - ([#1](https://github.com/danstis/rmstale/issues/1)) Description
 -->
 
-## [Unreleased]
+## [v1.3.0]
 
 * New - Add coverage reporting.
 * Changed - ([#28](https://github.com/danstis/rmstale/issues/28)) Change format of log messages.
