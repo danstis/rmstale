@@ -2,12 +2,19 @@ package main
 
 import (
 	"io/ioutil"
+	"log"
 	"os"
 	"testing"
 	"time"
 
+	"github.com/danstis/logger"
+
 	. "github.com/smartystreets/goconvey/convey"
 )
+
+func init() {
+	initLogger()
+}
 
 func TestAgeDetection(t *testing.T) {
 
@@ -172,6 +179,11 @@ func TestDirectoryProcessing(t *testing.T) {
 
 	})
 
+}
+
+func initLogger() {
+	logger.Flags = log.Ldate
+	defer logger.Init("rmstale_test", true, false, ioutil.Discard).Close()
 }
 
 func fileInfo(t *testing.T, fn string) os.FileInfo {
