@@ -2,10 +2,10 @@
 
 
 [[projects]]
-  branch = "master"
-  name = "github.com/google/logger"
+  branch = "feature/make-flags-user-definable"
+  name = "github.com/danstis/logger"
   packages = ["."]
-  revision = "54b4ae679a63f6d6fd5c0009b2471e637eabf784"
+  revision = "dceba3fec359297d667345b91d30b405d66c2056"
 
 [[projects]]
   branch = "master"
@@ -70,6 +70,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "3b5a1f4c85ab2a5693fa38655713b9f2212953931b0a739fe49091f3f093ee26"
+  inputs-digest = "48411058e98daba2a20afc7a0219d0cfcbcb908c9772184d83b52597b0f0c854"
   solver-name = "gps-cdcl"
   solver-version = 1

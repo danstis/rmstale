@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 ## [Unreleased]
 
 * New - Add coverage reporting.
+* Changed - ([#28](https://github.com/danstis/rmstale/issues/28)) Change format of log messages.
 
 ## [v1.2.3]
 
