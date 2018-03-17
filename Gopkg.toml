@@ -25,9 +25,13 @@
   name = "github.com/segmentio/go-prompt"
   revision = "f0d19b6901ade831d5a3204edc0d6a7d6457fbb2"
 
+# [[constraint]]
+#   branch = "master"
+#   name = "github.com/google/logger"
+
 [[constraint]]
-  branch = "master"
-  name = "github.com/google/logger"
+  branch = "feature/make-flags-user-definable"
+  name = "github.com/danstis/logger"
 
 [[constraint]]
   name = "github.com/smartystreets/goconvey"

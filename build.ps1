@@ -18,3 +18,5 @@ go build -ldflags "-X main.AppVersion=$($VersionInfo.SemVer)" -o .\bin\linux\rms
 ## Mac x86
 $ENV:GOOS = "darwin"; $env:GOARCH = "386"
 go build -ldflags "-X main.AppVersion=$($VersionInfo.SemVer)" -o .\bin\darwin\rmstale rmstale.go
+
+$ENV:GOOS = "windows"; $env:GOARCH = "amd64"

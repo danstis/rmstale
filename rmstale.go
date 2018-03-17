@@ -5,14 +5,17 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"os"
 	"path"
 	"path/filepath"
 	"time"
 
-	"github.com/google/logger"
+	"github.com/danstis/logger"
 	prompt "github.com/segmentio/go-prompt"
 )
+
+const flags = log.Ldate
 
 // AppVersion controls the application version number
 var AppVersion = "0.0.0"
@@ -23,6 +26,7 @@ func main() {
 	confirm := flag.Bool("y", false, "Don't prompt for confirmation.")
 	version := flag.Bool("version", false, "Display version information.")
 
+	logger.Flags = flags
 	defer logger.Init("rmstale", true, true, ioutil.Discard).Close()
 
 	flag.Parse()
