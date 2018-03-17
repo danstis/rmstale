@@ -30,7 +30,7 @@
 #   name = "github.com/google/logger"
 
 [[constraint]]
-  branch = "feature/make-flags-user-definable"
+  branch = "master"
   name = "github.com/danstis/logger"
 
 [[constraint]]
