@@ -28,7 +28,7 @@ build_script:
 - ps: dep ensure
 - ps: Write-Host "Version detected as '$env:GitVersion_SemVer'"
 test_script:
-  - go test -v -coverprofile=coverage.out ./...
+  - go test -v -coverprofile=coverage.out -covermode=atomic ./...
   - ps: |
       $env:PATH = 'C:\msys64\usr\bin;' + $env:PATH
       Invoke-WebRequest -Uri 'https://codecov.io/bash' -OutFile codecov.sh
