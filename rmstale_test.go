@@ -24,7 +24,7 @@ func TestAgeDetection(t *testing.T) {
 		age := 14
 
 		Convey("With a modification date older than the defined age", func() {
-			setAge(t, file.Name(), age+5)
+			setAge(file.Name(), age+5)
 
 			Convey("It is detected as being stale", func() {
 				fi := fileInfo(t, file.Name())
@@ -34,7 +34,7 @@ func TestAgeDetection(t *testing.T) {
 		})
 
 		Convey("With a modification date newer than the defined age", func() {
-			setAge(t, file.Name(), age-5)
+			setAge(file.Name(), age-5)
 
 			Convey("It is not detected as stale", func() {
 				fi := fileInfo(t, file.Name())
@@ -147,11 +147,11 @@ func TestDirectoryProcessing(t *testing.T) {
 
 		// Set the ages of the files and folders
 		age := 14
-		setAge(t, oldSubdir1, age+4)
-		setAge(t, recentSubdir1, age-4)
-		setAge(t, oldFile1.Name(), age+4)
-		setAge(t, oldFile2.Name(), age+4)
-		setAge(t, recentFile1.Name(), age-4)
+		setAge(oldSubdir1, age+4)
+		setAge(recentSubdir1, age-4)
+		setAge(oldFile1.Name(), age+4)
+		setAge(oldFile2.Name(), age+4)
+		setAge(recentFile1.Name(), age-4)
 
 		Convey("Told to process removals", func() {
 			if err := procDir(rootDir, rootDir, age); err != nil {
@@ -218,7 +218,7 @@ func tempDirectory(t *testing.T, prefix, dir string) string {
 	return tmpDir
 }
 
-func setAge(t *testing.T, f string, age int) {
+func setAge(f string, age int) {
 	ts := time.Now().AddDate(0, 0, (age * -1))
 	os.Chtimes(f, ts, ts)
 }
