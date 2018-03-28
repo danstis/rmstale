@@ -29,7 +29,10 @@ build_script:
 - ps: Write-Host "Version detected as '$env:GitVersion_SemVer'"
 test_script:
   - go test -v -coverprofile=coverage.out ./...
-  - pip install --user codecov && codecov
+  - ps: |
+      $env:PATH = 'C:\msys64\usr\bin;' + $env:PATH
+      Invoke-WebRequest -Uri 'https://codecov.io/bash' -OutFile codecov.sh
+      bash codecov.sh -f coverage.out
   - goveralls -coverprofile=coverage.out -service=appveyor || exit 0
   - go vet ./...
   - megacheck ./...
