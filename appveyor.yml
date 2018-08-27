@@ -15,14 +15,14 @@ install:
   - rm C:\Tools\GitVersion\GitVersion.exe
   - choco install gitversion.portable -pre -y
   - set PATH=%GOPATH%\bin;c:\go\bin;%USERPROFILE%\go\bin;%PATH%
-  - go get -u github.com/golang/dep/cmd/dep
+  # - go get -u github.com/golang/dep/cmd/dep
   - go get -u github.com/golang/lint/golint
   - go get -u honnef.co/go/tools/cmd/megacheck
   - go version
-cache: c:\gopath\src\github.com\danstis\rmstale\vendor
+# cache: c:\gopath\src\github.com\danstis\rmstale\vendor
 build_script:
 - ps: gitversion /output buildserver
-- ps: dep ensure
+# - ps: dep ensure
 - ps: Write-Host "Version detected as '$env:GitVersion_SemVer'"
 test_script:
   - go test -v -coverprofile=coverage.out -covermode=count ./...
