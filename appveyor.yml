@@ -1,10 +1,6 @@
 version: Build.{build}
 pull_requests:
   do_not_increment_build_number: true
-branches:
-  only:
-  - master
-  - /feature.*/
 clone_folder: c:\gopath\src\github.com\danstis\rmstale
 environment:
   GOPATH: c:\gopath
