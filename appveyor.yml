@@ -30,7 +30,7 @@ test_script:
       Invoke-WebRequest -Uri 'https://codecov.io/bash' -OutFile codecov.sh
       bash codecov.sh -f coverage.out
   - go vet ./...
-  - megacheck ./...
+  # - megacheck ./... # Remove until it supports modules: https://github.com/golang/go/issues/24661
   - ps: golint -set_exit_status $(go list ./...)
 after_test:
   - ps: |
