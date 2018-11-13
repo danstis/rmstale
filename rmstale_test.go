@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/danstis/logger"
+	"github.com/google/logger"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -182,8 +182,8 @@ func TestDirectoryProcessing(t *testing.T) {
 }
 
 func initLogger() {
-	logger.Flags = log.Ldate
 	defer logger.Init("rmstale_test", true, false, ioutil.Discard).Close()
+	logger.SetFlags(log.Ltime | log.Lshortfile)
 }
 
 func fileInfo(t *testing.T, fn string) os.FileInfo {

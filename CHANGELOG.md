@@ -9,9 +9,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 * New|Changed|Fixed - ([#1](https://github.com/danstis/rmstale/issues/1)) Description
 -->
 
-## [Unreleased]
+## [v1.4.0]
 
 * Changed - Update to use go 1.11's modules
+* Changed - ([#37](https://github.com/danstis/rmstale/issues/37)) Revert to using google/logger package rather than fork.
 
 ## [v1.3.0]
 
@@ -67,7 +68,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 
 * New - Removes files based on age.
 
-[unreleased]: https://github.com/danstis/rmstale/compare/v1.3.0...HEAD
+[unreleased]: https://github.com/danstis/rmstale/compare/v1.4.0...HEAD
+[v1.4.0]: https://github.com/danstis/rmstale/compare/v1.3.0...v1.4.0
 [v1.3.0]: https://github.com/danstis/rmstale/compare/v1.2.3...v1.3.0
 [v1.2.3]: https://github.com/danstis/rmstale/compare/v1.2.0...v1.2.3
 [v1.2.0]: https://github.com/danstis/rmstale/compare/v1.1.1...v1.2.0
