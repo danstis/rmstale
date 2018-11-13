@@ -9,6 +9,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 * New|Changed|Fixed - ([#1](https://github.com/danstis/rmstale/issues/1)) Description
 -->
 
+## [Unreleased]
+
+* Changed - Update to use go 1.11's modules
+
 ## [v1.3.0]
 
 * New - Add coverage reporting.
