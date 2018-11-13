@@ -4,9 +4,11 @@ pull_requests:
 branches:
   only:
   - master
+  - /feature.*/
 clone_folder: c:\gopath\src\github.com\danstis\rmstale
 environment:
   GOPATH: c:\gopath
+  GO111MODULE: on
   APPVEYOR_RDP_PASSWORD:
     secure: wbXI5iatP54O3ymh5QhCPg==
   ChocoApiKey:
@@ -15,14 +17,11 @@ install:
   - rm C:\Tools\GitVersion\GitVersion.exe
   - choco install gitversion.portable -pre -y
   - set PATH=%GOPATH%\bin;c:\go\bin;%USERPROFILE%\go\bin;%PATH%
-  - go get -u github.com/golang/dep/cmd/dep
   - go get -u github.com/golang/lint/golint
   - go get -u honnef.co/go/tools/cmd/megacheck
   - go version
-cache: c:\gopath\src\github.com\danstis\rmstale\vendor
 build_script:
 - ps: gitversion /output buildserver
-- ps: dep ensure
 - ps: Write-Host "Version detected as '$env:GitVersion_SemVer'"
 test_script:
   - go test -v -coverprofile=coverage.out -covermode=count ./...
@@ -31,7 +30,7 @@ test_script:
       Invoke-WebRequest -Uri 'https://codecov.io/bash' -OutFile codecov.sh
       bash codecov.sh -f coverage.out
   - go vet ./...
-  - megacheck ./...
+  # - megacheck ./... # Remove until it supports modules: https://github.com/golang/go/issues/24661
   - ps: golint -set_exit_status $(go list ./...)
 after_test:
   - ps: |
