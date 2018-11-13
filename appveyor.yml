@@ -4,6 +4,7 @@ pull_requests:
 branches:
   only:
   - master
+  - /feature.*/
 clone_folder: c:\gopath\src\github.com\danstis\rmstale
 environment:
   GOPATH: c:\gopath
