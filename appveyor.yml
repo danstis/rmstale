@@ -11,10 +11,10 @@ environment:
     secure: iNMxtYIBsXBiXFvLROnort/ceVDsrAVGXa6QIDznzKiBC+yCQmUl3JH6ghAwXAXh
 install:
   - rm C:\Tools\GitVersion\GitVersion.exe
-  - choco install gitversion.portable -pre -y
+  - choco install gitversion.portable -pre --version 4.0.0 -y
   - set PATH=%GOPATH%\bin;c:\go\bin;%USERPROFILE%\go\bin;%PATH%
-  - go get -u github.com/golang/lint/golint
-  - go get -u honnef.co/go/tools/cmd/megacheck
+  - go get -u golang.org/x/lint/golint
+  # - go get -u honnef.co/go/tools/cmd/megacheck
   - go version
 build_script:
 - ps: gitversion /output buildserver

@@ -9,6 +9,8 @@ require (
 	github.com/smartystreets/assertions v0.0.0-20180301161246-7678a5452ebe // indirect
 	github.com/smartystreets/goconvey v0.0.0-20170602164621-9e8dc3f972df
 	github.com/smartystreets/gunit v0.0.0-20180314194857-6f0d6275bdcd // indirect
-	golang.org/x/crypto v0.0.0-20171228081715-95a4943f35d0 // indirect
-	golang.org/x/sys v0.0.0-20171222143536-83801418e1b5 // indirect
+	golang.org/x/lint v0.0.0-20190930215403-16217165b5de // indirect
+	golang.org/x/tools v0.0.0-20190930201159-7c411dea38b0 // indirect
 )
+
+go 1.13
