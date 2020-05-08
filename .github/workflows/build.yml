@@ -90,6 +90,9 @@ jobs:
         with:
           files: '["rmstale.nuspec"]'
 
+      - name: Create directory for chocolaty package
+        run: mkdir -p ${{ github.workspace }}/bin/chocolatey
+
       - name: Package chocolaty binary
         uses: crazy-max/ghaction-chocolatey@v1
         with:
