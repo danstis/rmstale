@@ -220,7 +220,7 @@ func tempDirectory(t *testing.T, prefix, dir string) string {
 
 func setAge(f string, age int) {
 	ts := time.Now().AddDate(0, 0, (age * -1))
-	os.Chtimes(f, ts, ts)
+	_ = os.Chtimes(f, ts, ts)
 }
 
 func exists(fn string) bool {
