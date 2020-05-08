@@ -9,19 +9,19 @@
       {
         "assets": [
           {
-            "path": "artifacts/bin/linux/rmstale",
+            "path": "artifacts/rmstale-linux-x86/rmstale",
             "label": "rmstale-linux-x86"
           },
           {
-            "path": "artifacts/bin/darwin/rmstale",
+            "path": "artifacts/rmstale-darwin-x86/rmstale",
             "label": "rmstale-darwin-x86"
           },
           {
-            "path": "artifacts/bin/windows/rmstale.exe",
+            "path": "artifacts/rmstale-win-x86/rmstale.exe",
             "label": "rmstale-win-x86"
           },
           {
-            "path": "artifacts/bin/chocolatey/rmstale*.nupkg",
+            "path": "artifacts/rmstale-chocolatey/rmstale*.nupkg",
             "label": "Chocolatey Package"
           }
         ]
