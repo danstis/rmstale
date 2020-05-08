@@ -19,6 +19,10 @@
           {
             "path": "artifacts/bin/windows/rmstale.exe",
             "label": "rmstale-win-x86"
+          },
+          {
+            "path": "artifacts/bin/chocolatey/rmstale*.nupkg",
+            "label": "Chocolatey Package"
           }
         ]
       }

@@ -145,3 +145,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npx semantic-release
+# TODO: Add a proces to push the choco package. This should be dependant on the release being created. And has to specify the choco API key.
