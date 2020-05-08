@@ -40,6 +40,7 @@ jobs:
         uses: golangci/golangci-lint-action@v0.1.7
         with:
           version: v1.26
+          args: ./${{ github.workspace }}/...
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
   build:
