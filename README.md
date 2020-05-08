@@ -29,7 +29,7 @@ Some examples for use:
 | -------- | ------------------------------------------------------------------------ |
 | -age     | Period in days before an item is considered stale                        |
 | -path    | Path to a folder to process                                              |
-| -y       | Allows for processing without confirmation propmt, useful for scheduling |
+| -y       | Allows for processing without confirmation prompt, useful for scheduling |
 | -version | Displays the version of rmstale that is currently running                |
 
 ### Usage examples:
