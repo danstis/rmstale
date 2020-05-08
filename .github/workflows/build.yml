@@ -93,10 +93,10 @@ jobs:
       - name: Create directory for chocolaty package
         run: mkdir -p ${{ github.workspace }}/bin/chocolatey
 
-      - name: Package chocolaty binary
+      - name: Package chocolaty binary # Output path refers to the mapped docker volume (/wksp)
         uses: crazy-max/ghaction-chocolatey@v1
         with:
-          args: pack rmstale.nuspec --outputdirectory ${{ github.workspace }}/bin/chocolatey
+          args: pack rmstale.nuspec --outputdirectory /wksp/bin/chocolatey
 
       - name: Upload Windows Build Artifact
         uses: actions/upload-artifact@v2
