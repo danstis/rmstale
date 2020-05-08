@@ -88,11 +88,7 @@ jobs:
       - name: Replace version in NuSpec file
         uses: cschleiden/replace-tokens@v1
         with:
-          tokenPrefix: "__"
-          tokenSuffix: "__"
           files: '["rmstale.nuspec"]'
-        env:
-          REPLACE_VERSION: ${{ steps.gitversion.outputs.LegacySemVer }}
 
       - name: Package chocolaty binary
         uses: crazy-max/ghaction-chocolatey@v1
