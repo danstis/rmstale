@@ -92,7 +92,7 @@ jobs:
           tokenSuffix: "__"
           files: '["rmstale.nuspec"]'
         env:
-          REPLACE_VERSION: ${{ steps.gitversion.outputs.semVer }}
+          REPLACE_VERSION: ${{ steps.gitversion.outputs.LegacySemVer }}
 
       - name: Package chocolaty binary
         uses: crazy-max/ghaction-chocolatey@v1
