@@ -37,7 +37,7 @@ Some examples for use:
 ```
 >: rmstale -version
 
-rmstale v1.0.0
+rmstale v1.5.0
 ```
 
 ```
