@@ -120,7 +120,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: rmstale-chocolatey
-          path: ${{ github.workspace }}/bin/chocolatey/chocolatey-rmstale.nupkg
+          path: ${{ github.workspace }}/bin/chocolatey/rmstale*.nupkg
 
   release:
     name: Release
