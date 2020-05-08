@@ -1,6 +1,6 @@
 # rmstale
 
-[![Build status](https://ci.appveyor.com/api/projects/status/h83tgvpdo8icnl47/branch/master?svg=true)](https://ci.appveyor.com/project/danstis/rmstale/branch/master)
+[![Build](https://github.com/danstis/rmstale/workflows/Build/badge.svg)](https://github.com/danstis/rmstale/actions?query=workflow%3ABuild)
 [![Chocolatey](https://img.shields.io/chocolatey/v/rmstale.svg)](https://chocolatey.org/packages/rmstale)
 [![codecov](https://codecov.io/gh/danstis/rmstale/branch/master/graph/badge.svg)](https://codecov.io/gh/danstis/rmstale)
 
