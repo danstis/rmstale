@@ -1,0 +1,27 @@
+{
+  "dryRun": true,
+  "debug": true,
+  "plugins": [
+    "@semantic-release/commit-analyzer",
+    "@semantic-release/release-notes-generator",
+    [
+      "@semantic-release/github",
+      {
+        "assets": [
+          {
+            "path": "artifacts/bin/linux/rmstale",
+            "label": "rmstale-linux-x86"
+          },
+          {
+            "path": "artifacts/bin/darwin/rmstale",
+            "label": "rmstale-darwin-x86"
+          },
+          {
+            "path": "artifacts/bin/windows/rmstale.exe",
+            "label": "rmstale-win-x86"
+          }
+        ]
+      }
+    ]
+  ]
+}

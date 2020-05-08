@@ -1,10 +1,11 @@
 assembly-versioning-scheme: None
-mode: Mainline
-major-version-bump-message: '\+semver:\s?(breaking|major)'
-minor-version-bump-message: '\+semver:\s?(feature|minor)'
-patch-version-bump-message: '\+semver:\s?(fix|patch)'
-no-bump-message: '\+semver:\s?(none|skip)'
+mode: ContinuousDelivery
+major-version-bump-message: (BREAKING CHANGES?|major)(\(.*?\))?:\s?
+minor-version-bump-message: (feature|minor|feat)(\(.*?\))?:\s?
+patch-version-bump-message: (fix|patch|hotfix)(\(.*?\))?:\s?
+no-bump-message: (none|skip|doc|docs|ci|chore)(\(.*?\))?:\s?
 branches: {}
 ignore:
   sha: []
 increment: Inherit
+merge-message-formats: {}
