@@ -1,0 +1,31 @@
+{
+  "dryRun": false,
+  "debug": false,
+  "plugins": [
+    "@semantic-release/commit-analyzer",
+    "@semantic-release/release-notes-generator",
+    [
+      "@semantic-release/github",
+      {
+        "assets": [
+          {
+            "path": "artifacts/rmstale-linux-x86/rmstale",
+            "label": "rmstale-linux-x86"
+          },
+          {
+            "path": "artifacts/rmstale-darwin-x86/rmstale",
+            "label": "rmstale-darwin-x86"
+          },
+          {
+            "path": "artifacts/rmstale-win-x86/rmstale.exe",
+            "label": "rmstale-win-x86"
+          },
+          {
+            "path": "artifacts/rmstale-chocolatey/rmstale*.nupkg",
+            "label": "Chocolatey Package"
+          }
+        ]
+      }
+    ]
+  ]
+}

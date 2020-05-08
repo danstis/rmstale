@@ -1,6 +1,6 @@
 # rmstale
 
-[![Build status](https://ci.appveyor.com/api/projects/status/h83tgvpdo8icnl47/branch/master?svg=true)](https://ci.appveyor.com/project/danstis/rmstale/branch/master)
+[![Build](https://github.com/danstis/rmstale/workflows/Build/badge.svg)](https://github.com/danstis/rmstale/actions?query=workflow%3ABuild)
 [![Chocolatey](https://img.shields.io/chocolatey/v/rmstale.svg)](https://chocolatey.org/packages/rmstale)
 [![codecov](https://codecov.io/gh/danstis/rmstale/branch/master/graph/badge.svg)](https://codecov.io/gh/danstis/rmstale)
 
@@ -25,19 +25,19 @@ Some examples for use:
 
 ### Command line flags:
 
-| Flag | Description |
-| -- | -- |
-| -age | Period in days before an item is considered stale |
-| -path | Path to a folder to process |
-| -y | Allows for processing without confirmation propmt, useful for scheduling |
-| -version | Displays the version of rmstale that is currently running |
+| Flag     | Description                                                              |
+| -------- | ------------------------------------------------------------------------ |
+| -age     | Period in days before an item is considered stale                        |
+| -path    | Path to a folder to process                                              |
+| -y       | Allows for processing without confirmation prompt, useful for scheduling |
+| -version | Displays the version of rmstale that is currently running                |
 
 ### Usage examples:
 
 ```
 >: rmstale -version
 
-rmstale v1.0.0
+rmstale v1.5.0
 ```
 
 ```
