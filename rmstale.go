@@ -31,6 +31,10 @@ func main() {
 
 	flag.Parse()
 
+	if *ext != "" {
+		extMsg = fmt.Sprintf(" with extension '%v'", *ext)
+	}
+
 	if *version {
 		fmt.Printf("rmstale v%v\n", AppVersion)
 		os.Exit(0)
@@ -42,16 +46,13 @@ func main() {
 	}
 
 	if !*confirm {
-		if *ext != "" {
-			extMsg = fmt.Sprintf(" with extension '%v'", *ext)
-		}
 		if ok := prompt.Confirm("WARNING: Will remove files and folders recursively below '%v'%s older than %v days. Continue?", filepath.FromSlash(*folder), extMsg, *age); !ok {
 			logger.Warning("Operation not confirmed, exiting.")
 			os.Exit(1)
 		}
 	}
 
-	logger.Infof("rmstale started against folder '%v' for contents older than %v days.", filepath.FromSlash(*folder), *age)
+	logger.Infof("rmstale started against folder '%v'%s for contents older than %v days.", filepath.FromSlash(*folder), extMsg, *age)
 
 	if err := procDir(*folder, *folder, *age, *ext); err != nil {
 		logger.Errorf("Something went wrong: %v", err)
