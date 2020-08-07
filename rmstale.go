@@ -73,14 +73,8 @@ func procDir(fp, rootFolder string, age int, ext string) error {
 				return err
 			}
 		} else {
-			if ext != "" {
-				if isStale(item, age) && getExt(item.Name()) == ext {
-					removeItem(path.Join(fp, item.Name()), rootFolder)
-				}
-			} else {
-				if isStale(item, age) {
-					removeItem(path.Join(fp, item.Name()), rootFolder)
-				}
+			if isStale(item, age) && matchExt(item.Name(), ext) {
+				removeItem(path.Join(fp, item.Name()), rootFolder)
 			}
 		}
 	}
@@ -128,7 +122,7 @@ func removeItem(fp, rootFolder string) {
 	}
 }
 
-// getExt returns the file extension of the presented path
+// getExt returns the file extension of the presented path.
 func getExt(path string) string {
 	for i := len(path) - 1; i >= 0 && !os.IsPathSeparator(path[i]); i-- {
 		if path[i] == '.' {
@@ -136,4 +130,12 @@ func getExt(path string) string {
 		}
 	}
 	return ""
+}
+
+// matchExt returns true if the file name specified matches the extension specified.
+func matchExt(name, ext string) bool {
+	if ext == "" {
+		return true
+	}
+	return getExt(name) == ext
 }
