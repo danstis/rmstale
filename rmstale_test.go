@@ -30,7 +30,6 @@ func TestAgeDetection(t *testing.T) {
 				fi := fileInfo(t, file.Name())
 				So(isStale(fi, age), ShouldBeTrue)
 			})
-
 		})
 
 		Convey("With a modification date newer than the defined age", func() {
@@ -40,11 +39,8 @@ func TestAgeDetection(t *testing.T) {
 				fi := fileInfo(t, file.Name())
 				So(isStale(fi, age), ShouldBeFalse)
 			})
-
 		})
-
 	})
-
 }
 
 func TestFileRemoval(t *testing.T) {
@@ -57,7 +53,6 @@ func TestFileRemoval(t *testing.T) {
 		Convey("The file no longer exists", func() {
 			So(exists(tmpFile.Name()), ShouldBeFalse)
 		})
-
 	})
 
 	Convey("Given a directory to remove", t, func() {
@@ -68,7 +63,6 @@ func TestFileRemoval(t *testing.T) {
 		Convey("The directory no longer exists", func() {
 			So(exists(tmpDir), ShouldBeFalse)
 		})
-
 	})
 
 	Convey("Given the root folder to remove", t, func() {
@@ -79,9 +73,7 @@ func TestFileRemoval(t *testing.T) {
 		Convey("The root folder is not removed", func() {
 			So(exists(tmpDir), ShouldBeTrue)
 		})
-
 	})
-
 }
 
 func TestEmptyDirectoryDetection(t *testing.T) {
@@ -97,7 +89,6 @@ func TestEmptyDirectoryDetection(t *testing.T) {
 			}
 			So(empty, ShouldBeTrue)
 		})
-
 	})
 
 	Convey("Given a directory containing a file", t, func() {
@@ -113,9 +104,7 @@ func TestEmptyDirectoryDetection(t *testing.T) {
 			}
 			So(empty, ShouldBeFalse)
 		})
-
 	})
-
 }
 
 func TestDirectoryProcessing(t *testing.T) {
@@ -174,11 +163,8 @@ func TestDirectoryProcessing(t *testing.T) {
 			Convey("Empty directories that are new but contain no files are retained", func() {
 				So(exists(recentSubdir1), ShouldBeTrue)
 			})
-
 		})
-
 	})
-
 }
 
 func initLogger() {
