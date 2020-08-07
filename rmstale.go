@@ -45,7 +45,7 @@ func main() {
 		if *ext != "" {
 			extMsg = fmt.Sprintf(" with extension '%v'", *ext)
 		}
-		if ok := prompt.Confirm("WARNING: Will remove files and folders recursively below '%v'%s older than %v days. Continue?", filepath.FromSlash(*folder), *age, extMsg); !ok {
+		if ok := prompt.Confirm("WARNING: Will remove files and folders recursively below '%v'%s older than %v days. Continue?", filepath.FromSlash(*folder), extMsg, *age); !ok {
 			logger.Warning("Operation not confirmed, exiting.")
 			os.Exit(1)
 		}
