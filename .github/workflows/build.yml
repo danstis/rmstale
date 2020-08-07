@@ -81,7 +81,7 @@ jobs:
           GOARCH: 386
 
       - name: Build darwin x86
-        run: go build -v -ldflags "-X main.AppVersion=${{ steps.gitversion.outputs.semVer }}" -o ${{ github.workspace }}/bin/darwin/rmstale rmstale.go
+        run: go build -v -ldflags "-X main.AppVersion=${{ steps.gitversion.outputs.semVer }}" -o ${{ github.workspace }}/bin/darwin/rmstale-darwin rmstale.go
         env:
           GOOS: linux
           GOARCH: 386
@@ -115,7 +115,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: rmstale-darwin-x86
-          path: ${{ github.workspace }}/bin/darwin/rmstale
+          path: ${{ github.workspace }}/bin/darwin/rmstale-darwin
 
       - name: Upload Chocolatey Build Artifact
         uses: actions/upload-artifact@v2
