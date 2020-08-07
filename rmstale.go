@@ -22,12 +22,18 @@ func main() {
 	folder := flag.String("path", os.TempDir(), "Path to check for stale files.")
 	age := flag.Int("age", 0, "Age in days to check for file modification.")
 	confirm := flag.Bool("y", false, "Don't prompt for confirmation.")
+	ext := flag.String("extension", "", "Filter files by extension.")
 	version := flag.Bool("version", false, "Display version information.")
+	extMsg := ""
 
 	defer logger.Init("rmstale", true, true, ioutil.Discard).Close()
 	logger.SetFlags(log.Ltime)
 
 	flag.Parse()
+
+	if *ext != "" {
+		extMsg = fmt.Sprintf(" with extension '%v'", *ext)
+	}
 
 	if *version {
 		fmt.Printf("rmstale v%v\n", AppVersion)
@@ -40,20 +46,20 @@ func main() {
 	}
 
 	if !*confirm {
-		if ok := prompt.Confirm("WARNING: Will remove files and folders recursively below '%v' older than %v days. Continue?", filepath.FromSlash(*folder), *age); !ok {
+		if ok := prompt.Confirm("WARNING: Will remove files and folders recursively below '%v'%s older than %v days. Continue?", filepath.FromSlash(*folder), extMsg, *age); !ok {
 			logger.Warning("Operation not confirmed, exiting.")
 			os.Exit(1)
 		}
 	}
 
-	logger.Infof("rmstale started against folder '%v' for contents older than %v days.", filepath.FromSlash(*folder), *age)
+	logger.Infof("rmstale started against folder '%v'%s for contents older than %v days.", filepath.FromSlash(*folder), extMsg, *age)
 
-	if err := procDir(*folder, *folder, *age); err != nil {
+	if err := procDir(*folder, *folder, *age, *ext); err != nil {
 		logger.Errorf("Something went wrong: %v", err)
 	}
 }
 
-func procDir(fp, rootFolder string, age int) error {
+func procDir(fp, rootFolder string, age int, ext string) error {
 	// get the fileInfo for the directory
 	di, err := os.Stat(fp)
 	if err != nil {
@@ -68,11 +74,11 @@ func procDir(fp, rootFolder string, age int) error {
 
 	for _, item := range contents {
 		if item.IsDir() {
-			if err := procDir(path.Join(fp, item.Name()), rootFolder, age); err != nil {
+			if err := procDir(path.Join(fp, item.Name()), rootFolder, age, ext); err != nil {
 				return err
 			}
 		} else {
-			if isStale(item, age) {
+			if isStale(item, age) && matchExt(item.Name(), ext) {
 				removeItem(path.Join(fp, item.Name()), rootFolder)
 			}
 		}
@@ -119,4 +125,22 @@ func removeItem(fp, rootFolder string) {
 	if err := os.Remove(fp); err != nil {
 		logger.Errorf("%v", err)
 	}
+}
+
+// getExt returns the file extension of the presented path.
+func getExt(path string) string {
+	for i := len(path) - 1; i >= 0 && !os.IsPathSeparator(path[i]); i-- {
+		if path[i] == '.' {
+			return path[i+1:]
+		}
+	}
+	return ""
+}
+
+// matchExt returns true if the file name specified matches the extension specified.
+func matchExt(name, ext string) bool {
+	if ext == "" {
+		return true
+	}
+	return getExt(name) == ext
 }
