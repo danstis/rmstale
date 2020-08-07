@@ -24,6 +24,7 @@ func main() {
 	confirm := flag.Bool("y", false, "Don't prompt for confirmation.")
 	ext := flag.String("extension", "", "Filter files by extension.")
 	version := flag.Bool("version", false, "Display version information.")
+	extMsg := ""
 
 	defer logger.Init("rmstale", true, true, ioutil.Discard).Close()
 	logger.SetFlags(log.Ltime)
@@ -41,7 +42,10 @@ func main() {
 	}
 
 	if !*confirm {
-		if ok := prompt.Confirm("WARNING: Will remove files and folders recursively below '%v' older than %v days. Continue?", filepath.FromSlash(*folder), *age); !ok {
+		if *ext != "" {
+			extMsg = fmt.Sprintf(" with extension '%v'", *ext)
+		}
+		if ok := prompt.Confirm("WARNING: Will remove files and folders recursively below '%v'%s older than %v days. Continue?", filepath.FromSlash(*folder), *age, extMsg); !ok {
 			logger.Warning("Operation not confirmed, exiting.")
 			os.Exit(1)
 		}
