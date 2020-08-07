@@ -22,6 +22,7 @@ func main() {
 	folder := flag.String("path", os.TempDir(), "Path to check for stale files.")
 	age := flag.Int("age", 0, "Age in days to check for file modification.")
 	confirm := flag.Bool("y", false, "Don't prompt for confirmation.")
+	ext := flag.String("extension", "", "Filter files by extension.")
 	version := flag.Bool("version", false, "Display version information.")
 
 	defer logger.Init("rmstale", true, true, ioutil.Discard).Close()
@@ -48,12 +49,12 @@ func main() {
 
 	logger.Infof("rmstale started against folder '%v' for contents older than %v days.", filepath.FromSlash(*folder), *age)
 
-	if err := procDir(*folder, *folder, *age); err != nil {
+	if err := procDir(*folder, *folder, *age, *ext); err != nil {
 		logger.Errorf("Something went wrong: %v", err)
 	}
 }
 
-func procDir(fp, rootFolder string, age int) error {
+func procDir(fp, rootFolder string, age int, ext string) error {
 	// get the fileInfo for the directory
 	di, err := os.Stat(fp)
 	if err != nil {
@@ -68,12 +69,18 @@ func procDir(fp, rootFolder string, age int) error {
 
 	for _, item := range contents {
 		if item.IsDir() {
-			if err := procDir(path.Join(fp, item.Name()), rootFolder, age); err != nil {
+			if err := procDir(path.Join(fp, item.Name()), rootFolder, age, ext); err != nil {
 				return err
 			}
 		} else {
-			if isStale(item, age) {
-				removeItem(path.Join(fp, item.Name()), rootFolder)
+			if ext != "" {
+				if isStale(item, age) && getExt(item.Name()) == ext {
+					removeItem(path.Join(fp, item.Name()), rootFolder)
+				}
+			} else {
+				if isStale(item, age) {
+					removeItem(path.Join(fp, item.Name()), rootFolder)
+				}
 			}
 		}
 	}
@@ -119,4 +126,14 @@ func removeItem(fp, rootFolder string) {
 	if err := os.Remove(fp); err != nil {
 		logger.Errorf("%v", err)
 	}
+}
+
+// getExt returns the file extension of the presented path
+func getExt(path string) string {
+	for i := len(path) - 1; i >= 0 && !os.IsPathSeparator(path[i]); i-- {
+		if path[i] == '.' {
+			return path[i+1:]
+		}
+	}
+	return ""
 }

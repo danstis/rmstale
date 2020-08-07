@@ -114,50 +114,123 @@ func TestDirectoryProcessing(t *testing.T) {
 		//		rootDir/
 		//			oldSubdir1/
 		//				oldFile2
+		//			oldSubdir2/
+		//				oldFile3.yes
+		//				oldFile3.no
+		//			oldSubdir3/
+		//				recentFile3
 		//			recentSubdir1/
 		//			oldFile1
+		//			oldFile4.no
+		//			oldFile4.yes
 		//			recentFile1
+		//			recentFile2.no
+		//			recentFile2.yes
 
 		// Create folder structure
 		rootDir := tempDirectory(t, "rootDir", os.TempDir())
 		defer os.RemoveAll(rootDir)
 		oldSubdir1 := tempDirectory(t, "oldSubdir1", rootDir)
 		defer os.RemoveAll(oldSubdir1)
+		oldSubdir2 := tempDirectory(t, "oldSubdir2", rootDir)
+		defer os.RemoveAll(oldSubdir2)
+		oldSubdir3 := tempDirectory(t, "oldSubdir3", rootDir)
+		defer os.RemoveAll(oldSubdir3)
 		recentSubdir1 := tempDirectory(t, "recentSubdir1", rootDir)
 		defer os.RemoveAll(recentSubdir1)
 
 		// Create file structure
 		oldFile2 := tempFile(t, "oldFile2", oldSubdir1)
 		defer os.Remove(oldFile2.Name())
+		oldFile3no := tempFile(t, "oldFile3.*.no", oldSubdir2)
+		defer os.Remove(oldFile3no.Name())
+		oldFile3yes := tempFile(t, "oldFile3.*.yes", oldSubdir2)
+		defer os.Remove(oldFile3yes.Name())
 		oldFile1 := tempFile(t, "oldFile1", rootDir)
 		defer os.Remove(oldFile1.Name())
+		oldFile4no := tempFile(t, "oldFile4.*.no", rootDir)
+		defer os.Remove(oldFile4no.Name())
+		oldFile4yes := tempFile(t, "oldFile4.*.yes", rootDir)
+		defer os.Remove(oldFile4yes.Name())
 		recentFile1 := tempFile(t, "recentFile1", rootDir)
 		defer os.Remove(recentFile1.Name())
+		recentFile2no := tempFile(t, "recentFile2.*.no", rootDir)
+		defer os.Remove(recentFile2no.Name())
+		recentFile2yes := tempFile(t, "recentFile2.*.yes", rootDir)
+		defer os.Remove(recentFile2yes.Name())
+		recentFile3 := tempFile(t, "recentFile3", oldSubdir3)
+		defer os.Remove(recentFile3.Name())
 
 		// Set the ages of the files and folders
 		age := 14
 		setAge(oldSubdir1, age+4)
+		setAge(oldSubdir2, age+4)
+		setAge(oldSubdir3, age+4)
 		setAge(recentSubdir1, age-4)
 		setAge(oldFile1.Name(), age+4)
 		setAge(oldFile2.Name(), age+4)
+		setAge(oldFile3no.Name(), age+4)
+		setAge(oldFile3yes.Name(), age+4)
+		setAge(oldFile4no.Name(), age+4)
+		setAge(oldFile4yes.Name(), age+4)
 		setAge(recentFile1.Name(), age-4)
+		setAge(recentFile2no.Name(), age-4)
+		setAge(recentFile2yes.Name(), age-4)
+		setAge(recentFile3.Name(), age-4)
 
-		Convey("Told to process removals", func() {
-			if err := procDir(rootDir, rootDir, age); err != nil {
+		Convey("Told to process unfiltered removals", func() {
+			if err := procDir(rootDir, rootDir, age, ""); err != nil {
 				t.Fatal(err)
 			}
 
 			Convey("Old files are removed", func() {
 				So(exists(oldFile1.Name()), ShouldBeFalse)
 				So(exists(oldFile2.Name()), ShouldBeFalse)
+				So(exists(oldFile3no.Name()), ShouldBeFalse)
+				So(exists(oldFile3yes.Name()), ShouldBeFalse)
+				So(exists(oldFile4no.Name()), ShouldBeFalse)
+				So(exists(oldFile4yes.Name()), ShouldBeFalse)
 			})
 
 			Convey("New files are retained", func() {
 				So(exists(recentFile1.Name()), ShouldBeTrue)
+				So(exists(recentFile2no.Name()), ShouldBeTrue)
+				So(exists(recentFile2yes.Name()), ShouldBeTrue)
 			})
 
 			Convey("Empty directories that are old and contain no files are removed", func() {
 				So(exists(oldSubdir1), ShouldBeFalse)
+			})
+
+			Convey("Empty directories that are old and contain files are retained", func() {
+				So(exists(oldSubdir3), ShouldBeTrue)
+			})
+
+			Convey("Empty directories that are new but contain no files are retained", func() {
+				So(exists(recentSubdir1), ShouldBeTrue)
+			})
+		})
+
+		Convey("Told to process filtered removals", func() {
+			if err := procDir(rootDir, rootDir, age, "yes"); err != nil {
+				t.Fatal(err)
+			}
+
+			Convey("Old files with matching extension are removed", func() {
+				So(exists(oldFile3yes.Name()), ShouldBeFalse)
+				So(exists(oldFile4yes.Name()), ShouldBeFalse)
+			})
+
+			Convey("Old files not matching extension are retained", func() {
+				So(exists(oldFile3no.Name()), ShouldBeTrue)
+				So(exists(oldFile4no.Name()), ShouldBeTrue)
+			})
+
+			Convey("New files are retained", func() {
+				So(exists(recentFile1.Name()), ShouldBeTrue)
+				So(exists(recentFile2no.Name()), ShouldBeTrue)
+				So(exists(recentFile2yes.Name()), ShouldBeTrue)
+				So(exists(recentFile3.Name()), ShouldBeTrue)
 			})
 
 			Convey("Empty directories that are new but contain no files are retained", func() {
