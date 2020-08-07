@@ -27,19 +27,20 @@ Some examples for use:
 
 ### Command line flags
 
-| Flag     | Description                                                              |
-| -------- | ------------------------------------------------------------------------ |
-| -age     | Period in days before an item is considered stale                        |
-| -path    | Path to a folder to process                                              |
-| -y       | Allows for processing without confirmation prompt, useful for scheduling |
-| -version | Displays the version of rmstale that is currently running                |
+| Flag       | Description                                                              |
+| ---------- | ------------------------------------------------------------------------ |
+| -age       | Period in days before an item is considered stale                        |
+| -path      | Path to a folder to process                                              |
+| -y         | Allows for processing without confirmation prompt, useful for scheduling |
+| -version   | Displays the version of rmstale that is currently running                |
+| -extension | Filter files for a defined file extension                                |
 
 ### Usage examples
 
 ```cmd
 >: rmstale -version
 
-rmstale v1.5.0
+rmstale v1.6.0
 ```
 
 ```cmd
