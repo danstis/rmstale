@@ -139,6 +139,9 @@ jobs:
         with:
           node-version: 12
 
+      - name: Install semantic release exec plugin
+        run: npm install @semantic-release/exec -D
+
       - name: Release # https://github.com/semantic-release/semantic-release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
