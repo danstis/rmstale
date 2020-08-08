@@ -145,4 +145,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npx semantic-release
-# TODO: Add a proces to push the choco package. This should be dependant on the release being created. And has to specify the choco API key.
+
+      - name: Push package to chocolatey.org
+        uses: crazy-max/ghaction-chocolatey@v1
+        if: ${{ env.CHOCOPUBLISH == 'true' }}
+        with:
+          args: push ${{ github.workspace }}/bin/chocolatey/rmstale${{ steps.gitversion.outputs.nuGetPreReleaseTagV2 }}.nupkg --source https://push.chocolatey.org/ --apikey ${{ secrets.CHOCO_KEY }}
