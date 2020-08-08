@@ -30,7 +30,7 @@
     [
       "@semantic-release/exec",
       {
-        "publishCmd": "export CHOCOPUBLISH='true'"
+        "publishCmd": "echo '::set-env name=CHOCOPUBLISH::true'"
       }
     ]
   ]

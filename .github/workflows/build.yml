@@ -164,4 +164,4 @@ jobs:
         uses: crazy-max/ghaction-chocolatey@v1
         if: ${{ env.CHOCOPUBLISH == 'true' }}
         with:
-          args: push ${{ github.workspace }}/bin/chocolatey/rmstale${{ steps.gitversion.outputs.nuGetPreReleaseTagV2 }}.nupkg --source https://push.chocolatey.org/ --apikey ${{ secrets.CHOCO_KEY }}
+          args: push /wksp/bin/chocolatey/rmstale${{ steps.gitversion.outputs.nuGetPreReleaseTagV2 }}.nupkg --source https://push.chocolatey.org/ --apikey ${{ secrets.CHOCO_KEY }}
