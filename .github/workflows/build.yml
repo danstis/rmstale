@@ -37,11 +37,9 @@ jobs:
         run: go vet .
 
       - name: Run golangci-lint # https://github.com/marketplace/actions/run-golangci-lint
-        uses: golangci/golangci-lint-action@v0.1.7
+        uses: golangci/golangci-lint-action@v1
         with:
-          version: v1.26
-          args: ${{ github.workspace }}/...
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          version: v1.29
 
   build:
     name: Build
