@@ -161,6 +161,6 @@ jobs:
 
       - name: Push package to chocolatey.org
         uses: crazy-max/ghaction-chocolatey@v1
-        if: ${{ env.CHOCOPUBLISH == 'true' }}
+        if: ${{ env.CHOCOPUBLISH == 'true' }} # Set by the semantic-release/exec plugin if a release has been created
         with:
           args: push /wksp/bin/chocolatey/rmstale${{ steps.gitversion.outputs.nuGetPreReleaseTagV2 }}.nupkg --source https://push.chocolatey.org/ --apikey ${{ secrets.CHOCO_KEY }}
