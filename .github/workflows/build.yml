@@ -36,12 +36,23 @@ jobs:
       - name: Run Go Vet
         run: go vet .
 
-      - name: Run golangci-lint # https://github.com/marketplace/actions/run-golangci-lint
-        uses: golangci/golangci-lint-action@v0.1.7
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Go 1.x
+        uses: actions/setup-go@v2
         with:
-          version: v1.26
-          args: ${{ github.workspace }}/...
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          go-version: ^1.13
+        id: go
+
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Run golangci-lint # https://github.com/marketplace/actions/run-golangci-lint
+        uses: golangci/golangci-lint-action@v1
+        with:
+          version: v1.29
 
   build:
     name: Build
@@ -141,8 +152,16 @@ jobs:
         with:
           node-version: 12
 
+      - name: Install semantic release exec plugin
+        run: npm install @semantic-release/exec -D
+
       - name: Release # https://github.com/semantic-release/semantic-release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npx semantic-release
-# TODO: Add a proces to push the choco package. This should be dependant on the release being created. And has to specify the choco API key.
+
+      - name: Push package to chocolatey.org
+        uses: crazy-max/ghaction-chocolatey@v1
+        if: ${{ env.CHOCOPUBLISH == 'true' }}
+        with:
+          args: push ${{ github.workspace }}/bin/chocolatey/rmstale${{ steps.gitversion.outputs.nuGetPreReleaseTagV2 }}.nupkg --source https://push.chocolatey.org/ --apikey ${{ secrets.CHOCO_KEY }}
