@@ -66,9 +66,8 @@ jobs:
 
       - name: Check out code
         uses: actions/checkout@v2
-
-      - name: Fetch all history for all tags and branches
-        run: git fetch --prune --unshallow
+        with:
+          fetch-depth: 0
 
       - name: Install GitVersion
         uses: gittools/actions/gitversion/setup@v0.9.2
@@ -162,6 +161,6 @@ jobs:
 
       - name: Push package to chocolatey.org
         uses: crazy-max/ghaction-chocolatey@v1
-        if: ${{ env.CHOCOPUBLISH == 'true' }}
+        if: ${{ env.CHOCOPUBLISH == 'true' }} # Set by the semantic-release/exec plugin if a release has been created
         with:
-          args: push ${{ github.workspace }}/bin/chocolatey/rmstale${{ steps.gitversion.outputs.nuGetPreReleaseTagV2 }}.nupkg --source https://push.chocolatey.org/ --apikey ${{ secrets.CHOCO_KEY }}
+          args: push /wksp/bin/chocolatey/rmstale${{ steps.gitversion.outputs.nuGetPreReleaseTagV2 }}.nupkg --source https://push.chocolatey.org/ --apikey ${{ secrets.CHOCO_KEY }}
