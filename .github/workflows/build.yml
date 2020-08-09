@@ -79,19 +79,19 @@ jobs:
         uses: gittools/actions/gitversion/execute@v0.9.2
 
       - name: Build windows x86
-        run: go build -v -ldflags "-X main.AppVersion=${{ steps.gitversion.outputs.semVer }}" -o ${{ github.workspace }}/bin/windows/rmstale.exe rmstale.go
+        run: env GOOS=windows GOARCH=386 go build -v -ldflags "-X main.AppVersion=${{ steps.gitversion.outputs.semVer }}" -o ${{ github.workspace }}/bin/windows/rmstale.exe rmstale.go
         env:
           GOOS: windows
           GOARCH: 386
 
       - name: Build linux x86
-        run: go build -v -ldflags "-X main.AppVersion=${{ steps.gitversion.outputs.semVer }}" -o ${{ github.workspace }}/bin/linux/rmstale rmstale.go
+        run: env GOOS=linux GOARCH=386 go build -v -ldflags "-X main.AppVersion=${{ steps.gitversion.outputs.semVer }}" -o ${{ github.workspace }}/bin/linux/rmstale rmstale.go
         env:
           GOOS: linux
           GOARCH: 386
 
       - name: Build darwin x86
-        run: go build -v -ldflags "-X main.AppVersion=${{ steps.gitversion.outputs.semVer }}" -o ${{ github.workspace }}/bin/darwin/rmstale-darwin rmstale.go
+        run: env GOOS=darwin GOARCH=386 go build -v -ldflags "-X main.AppVersion=${{ steps.gitversion.outputs.semVer }}" -o ${{ github.workspace }}/bin/darwin/rmstale-darwin rmstale.go
         env:
           GOOS: linux
           GOARCH: 386
