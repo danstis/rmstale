@@ -83,7 +83,7 @@ jobs:
       - name: Build darwin x86
         run: go build -v -ldflags "-X main.AppVersion=${{ steps.gitversion.outputs.semVer }}" -o ${{ github.workspace }}/bin/darwin/rmstale-darwin rmstale.go
         env:
-          GOOS: linux
+          GOOS: darwin
           GOARCH: 386
 
       - name: Replace version in NuSpec file
