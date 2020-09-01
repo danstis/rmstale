@@ -90,11 +90,11 @@ jobs:
           GOOS: linux
           GOARCH: 386
 
-      - name: Build darwin x86
+      - name: Build darwin amd64
         run: go build -v -ldflags "-X main.AppVersion=${{ steps.gitversion.outputs.semVer }}" -o ${{ github.workspace }}/bin/darwin/rmstale-darwin rmstale.go
         env:
           GOOS: darwin
-          GOARCH: 386
+          GOARCH: amd64
 
       - name: Replace version in NuSpec file
         uses: cschleiden/replace-tokens@v1
@@ -124,7 +124,7 @@ jobs:
       - name: Upload Darwin Build Artifact
         uses: actions/upload-artifact@v2
         with:
-          name: rmstale-darwin-x86
+          name: rmstale-darwin-amd64
           path: ${{ github.workspace }}/bin/darwin/rmstale-darwin
 
       - name: Upload Chocolatey Build Artifact
