@@ -13,7 +13,7 @@ on:
 
 jobs:
   test:
-    name: Test
+    name: Test and Lint
     runs-on: ubuntu-latest
     steps:
       - name: Set up Go 1.x
@@ -36,26 +36,13 @@ jobs:
           file: ./coverage.out # optional
 
       - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@master
+        uses: SonarSource/sonarcloud-github-action@master # https://github.com/marketplace/actions/sonarcloud-scan
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
       - name: Run Go Vet
         run: go vet .
-
-  lint:
-    name: Lint
-    runs-on: ubuntu-latest
-    steps:
-      - name: Set up Go 1.x
-        uses: actions/setup-go@v2
-        with:
-          go-version: ^1.15
-        id: go
-
-      - name: Check out code
-        uses: actions/checkout@v2
 
       - name: Run golangci-lint # https://github.com/marketplace/actions/run-golangci-lint
         uses: golangci/golangci-lint-action@v2
