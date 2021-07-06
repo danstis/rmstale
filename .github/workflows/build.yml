@@ -38,13 +38,13 @@ jobs:
           fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysis
 
       - name: Install GitVersion
-        uses: gittools/actions/gitversion/setup@v0.9.9
+        uses: gittools/actions/gitversion/setup@v0.9.10
         with:
           versionSpec: "5.x"
 
       - name: Version with GitVersion # https://github.com/marketplace/actions/use-actions
         id: gitversion
-        uses: gittools/actions/gitversion/execute@v0.9.9
+        uses: gittools/actions/gitversion/execute@v0.9.10
 
       - name: Run tests
         run: go test -v -coverprofile=coverage.out -covermode=count -json ./... > test-report.out
@@ -79,13 +79,13 @@ jobs:
           fetch-depth: 0
 
       - name: Install GitVersion
-        uses: gittools/actions/gitversion/setup@v0.9.9
+        uses: gittools/actions/gitversion/setup@v0.9.10
         with:
           versionSpec: "5.x"
 
       - name: Version with GitVersion # https://github.com/marketplace/actions/use-actions
         id: gitversion
-        uses: gittools/actions/gitversion/execute@v0.9.9
+        uses: gittools/actions/gitversion/execute@v0.9.10
 
       - name: Build windows x86
         run: go build -v -ldflags "-X main.AppVersion=${{ steps.gitversion.outputs.semVer }}" -o ${{ github.workspace }}/bin/windows/rmstale.exe rmstale.go
