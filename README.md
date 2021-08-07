@@ -64,7 +64,7 @@ Want to contribute? Great:
 
 * Fork the repo using the Fork button at the top right of the GitHub repo.
 * Clone the repo to your development machine, note the dependencies for this project are as follows:
-  * Go version 1.11 or above
+  * Go version 1.13 or above
 * Create a new branch for the feature that you want to contribute.
 * Develop your new feature as you see fit.
 * Once you have a working copy of your code, create a pull request against this project.
