@@ -3,14 +3,15 @@ name: Build
 on:
   push:
     branches:
+      - main
       - master
       - beta
       - "feature/*"
       - "fix/*"
   pull_request:
     branches:
-      - master
       - main
+      - master
   workflow_dispatch:
 
 jobs:
