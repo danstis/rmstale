@@ -88,7 +88,7 @@ func procDir(fp, rootFolder string, age int, ext string) error {
 	if err != nil {
 		return err
 	}
-	if empty && isStale(di, age) {
+	if empty && isStale(di, age) && ext == "" {
 		removeItem(fp, rootFolder)
 	}
 
