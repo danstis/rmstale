@@ -133,4 +133,4 @@ jobs:
         uses: crazy-max/ghaction-chocolatey@v1
         if: ${{ steps.gitversion.outputs.PreReleaseTagWithDash == '' }}
         with:
-          args: push /wksp/bin/chocolatey/rmstale.${{ env.CHOCOVERSION }}.nupkg --source https://push.chocolatey.org/ --apikey ${{ secrets.CHOCO_KEY }}
+          args: push /wksp/bin/chocolatey/rmstale.${{ steps.gitversion.outputs.FullSemVer }}.nupkg --source https://push.chocolatey.org/ --apikey ${{ secrets.CHOCO_KEY }}
