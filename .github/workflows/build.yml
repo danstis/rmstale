@@ -68,12 +68,13 @@ jobs:
 
   build:
     name: Build
+    needs: [test, golangci]
     runs-on: ubuntu-latest
     steps:
       - name: Set up Go 1.x
         uses: actions/setup-go@v2
         with:
-          go-version: ^1.15
+          go-version: ^1.17
         id: go
 
       - name: Check out code
@@ -90,23 +91,29 @@ jobs:
         id: gitversion
         uses: gittools/actions/gitversion/execute@v0.9.10
 
-      - name: Build windows x86
-        run: go build -v -ldflags "-X main.AppVersion=${{ steps.gitversion.outputs.semVer }}" -o ${{ github.workspace }}/bin/windows/rmstale.exe rmstale.go
-        env:
-          GOOS: windows
-          GOARCH: 386
+      - name: Bump version and push tag
+        id: tag_version
+        uses: mathieudutour/github-tag-action@v5.6
+        if: ${{ steps.gitversion.outputs.PreReleaseTagWithDash == '' }}
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          custom_tag: ${{ steps.gitversion.outputs.FullSemVer }}
+          release_branches: main
+          tag_prefix: v
 
-      - name: Build linux x86
-        run: go build -v -ldflags "-X main.AppVersion=${{ steps.gitversion.outputs.semVer }}" -o ${{ github.workspace }}/bin/linux/rmstale rmstale.go
-        env:
-          GOOS: linux
-          GOARCH: 386
+      - name: Check out code
+        uses: actions/checkout@v2.3.4
+        if: ${{ steps.gitversion.outputs.PreReleaseTagWithDash == '' }}
+        with:
+          fetch-depth: 0
 
-      - name: Build darwin amd64
-        run: go build -v -ldflags "-X main.AppVersion=${{ steps.gitversion.outputs.semVer }}" -o ${{ github.workspace }}/bin/darwin/rmstale-darwin rmstale.go
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v2.7.0
+        with:
+          version: latest
+          args: release --rm-dist
         env:
-          GOOS: darwin
-          GOARCH: amd64
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Replace version in NuSpec file
         uses: cschleiden/replace-tokens@v1
@@ -121,58 +128,8 @@ jobs:
         with:
           args: pack rmstale.nuspec --outputdirectory /wksp/bin/chocolatey
 
-      - name: Upload Windows Build Artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: rmstale-win-x86
-          path: ${{ github.workspace }}/bin/windows/rmstale.exe
-
-      - name: Upload Linux Build Artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: rmstale-linux-x86
-          path: ${{ github.workspace }}/bin/linux/rmstale
-
-      - name: Upload Darwin Build Artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: rmstale-darwin-amd64
-          path: ${{ github.workspace }}/bin/darwin/rmstale-darwin
-
-      - name: Upload Chocolatey Build Artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: rmstale-chocolatey
-          path: ${{ github.workspace }}/bin/chocolatey/rmstale*.nupkg
-
-  release:
-    name: Release
-    runs-on: ubuntu-latest
-    needs: [build, test, golangci]
-    steps:
-      - name: Check out code
-        uses: actions/checkout@v2
-
-      - name: Download build artifacts
-        uses: actions/download-artifact@v2
-        with:
-          path: ${{ github.workspace }}/artifacts
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v2.4.1
-        with:
-          node-version: 14
-
-      - name: Install semantic release exec plugin
-        run: npm install @semantic-release/exec -D
-
-      - name: Release # https://github.com/semantic-release/semantic-release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npx semantic-release
-
       - name: Push package to chocolatey.org
         uses: crazy-max/ghaction-chocolatey@v1
-        if: ${{ env.CHOCOPUBLISH == 'true' }} # Set by the semantic-release/exec plugin if a release has been created
+        if: ${{ env.CHOCOPUBLISH == 'true' }} # Set by goreleaser custom publisher
         with:
-          args: push /wksp/artifacts/rmstale-chocolatey/rmstale.${{ env.CHOCOVERSION }}.nupkg --source https://push.chocolatey.org/ --apikey ${{ secrets.CHOCO_KEY }}
+          args: push /wksp/bin/chocolatey/rmstale.${{ env.CHOCOVERSION }}.nupkg --source https://push.chocolatey.org/ --apikey ${{ secrets.CHOCO_KEY }}
