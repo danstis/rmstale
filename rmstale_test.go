@@ -119,6 +119,7 @@ func TestDirectoryProcessing(t *testing.T) {
 		//				oldFile3.no
 		//			oldSubdir3/
 		//				recentFile3
+		//			oldEmptySubdir/
 		//			recentSubdir1/
 		//			oldFile1
 		//			oldFile4.no
@@ -136,6 +137,8 @@ func TestDirectoryProcessing(t *testing.T) {
 		defer os.RemoveAll(oldSubdir2)
 		oldSubdir3 := tempDirectory(t, "oldSubdir3", rootDir)
 		defer os.RemoveAll(oldSubdir3)
+		oldEmptySubdir := tempDirectory(t, "oldEmptySubdir", rootDir)
+		defer os.RemoveAll(oldEmptySubdir)
 		recentSubdir1 := tempDirectory(t, "recentSubdir1", rootDir)
 		defer os.RemoveAll(recentSubdir1)
 
@@ -166,6 +169,7 @@ func TestDirectoryProcessing(t *testing.T) {
 		setAge(oldSubdir1, age+4)
 		setAge(oldSubdir2, age+4)
 		setAge(oldSubdir3, age+4)
+		setAge(oldEmptySubdir, age+4)
 		setAge(recentSubdir1, age-4)
 		setAge(oldFile1.Name(), age+4)
 		setAge(oldFile2.Name(), age+4)
@@ -200,6 +204,7 @@ func TestDirectoryProcessing(t *testing.T) {
 
 			Convey("Empty directories that are old and contain no files are removed", func() {
 				So(exists(oldSubdir1), ShouldBeFalse)
+				So(exists(oldEmptySubdir), ShouldBeFalse)
 			})
 
 			Convey("Empty directories that are old and contain files are retained", func() {
@@ -233,8 +238,12 @@ func TestDirectoryProcessing(t *testing.T) {
 				So(exists(recentFile3.Name()), ShouldBeTrue)
 			})
 
-			Convey("Empty directories that are new but contain no files are retained", func() {
+			Convey("Directories are retained", func() {
 				So(exists(recentSubdir1), ShouldBeTrue)
+				So(exists(oldSubdir1), ShouldBeTrue)
+				So(exists(oldSubdir2), ShouldBeTrue)
+				So(exists(oldSubdir3), ShouldBeTrue)
+				So(exists(oldEmptySubdir), ShouldBeTrue)
 			})
 		})
 	})
