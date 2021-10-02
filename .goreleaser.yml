@@ -24,11 +24,6 @@ archives:
         format: zip
 checksum:
   name_template: "checksums.txt"
-publishers:
-  - name: chocolatey
-    cmd: |
-      echo "CHOCOPUBLISH=true" >> $GITHUB_ENV
-      echo "CHOCOVERSION={{ .Version }}" >> $GITHUB_ENV
 release:
   github:
     owner: danstis
