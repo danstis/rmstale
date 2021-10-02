@@ -1,0 +1,42 @@
+# Make sure to check the documentation at http://goreleaser.com
+before:
+  hooks:
+    # You may remove this if you don't use go modules.
+    - go mod download
+builds:
+  - env:
+      - CGO_ENABLED=0
+    main: ./rmstale.go
+    mod_timestamp: "{{ .CommitTimestamp }}"
+    goos:
+      - linux
+      - windows
+      - darwin
+    ldflags:
+      - -s -w -X main.AppVersion=={{ .Version }}
+    binary: rmstale
+archives:
+  - replacements:
+      386: i386
+      amd64: x86_64
+    format_overrides:
+      - goos: windows
+        format: zip
+checksum:
+  name_template: "checksums.txt"
+publishers:
+  - name: chocolatey
+    cmd: echo "CHOCOPUBLISH=true" >> $GITHUB_ENV && echo "CHOCOVERSION={{ .Version }}" >> $GITHUB_ENV
+release:
+  github:
+    owner: danstis
+    name: rmstale
+  discussion_category_name: General
+  prerelease: auto
+snapshot:
+  name_template: "{{ .Tag }}-next"
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^(build|chore|ci|doc|docs|none|perf|refactor|skip|test)(\\(.*?\\))?:\\s?"
