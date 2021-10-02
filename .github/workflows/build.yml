@@ -161,7 +161,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v2.4.1
         with:
-          node-version: 12
+          node-version: 14
 
       - name: Install semantic release exec plugin
         run: npm install @semantic-release/exec -D
