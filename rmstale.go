@@ -37,18 +37,18 @@ func main() {
 
 	if *version {
 		fmt.Printf("rmstale v%v\n", AppVersion)
-		os.Exit(0)
+		return
 	}
 
 	if *age == 0 {
 		flag.PrintDefaults()
-		os.Exit(1)
+		return
 	}
 
 	if !*confirm {
 		if ok := prompt.Confirm("WARNING: Will remove files and folders recursively below '%v'%s older than %v days. Continue?", filepath.FromSlash(*folder), extMsg, *age); !ok {
 			logger.Warning("Operation not confirmed, exiting.")
-			os.Exit(1)
+			return
 		}
 	}
 
