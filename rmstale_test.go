@@ -211,8 +211,39 @@ func (suite *RMStateSuite) TestEmptyDirectoryDetection() {
 	} {
 		suite.Run(t.name, func() {
 			got, err := isEmpty(t.directory)
-			suite.Equal((err != nil), t.wantErr)
+			suite.Equal(t.wantErr, (err != nil))
 			suite.Equal(t.want, got)
+		})
+	}
+}
+
+// TestProcDirErrors tests the edge cases for the procDir function
+func (suite *RMStateSuite) TestProcDirErrors() {
+	for _, t := range []struct {
+		name      string
+		path      string
+		directory string
+		ext       string
+		wantErr   bool
+	}{
+		{
+			name:      "Test with a missing file",
+			path:      "badFile",
+			directory: suite.rootDir,
+			ext:       "",
+			wantErr:   true,
+		},
+		{
+			name:      "Test with a file",
+			path:      suite.oldFile1.Name(),
+			directory: suite.oldFile1.Name(),
+			ext:       "",
+			wantErr:   true,
+		},
+	} {
+		suite.Run(t.name, func() {
+			err := procDir(t.path, t.directory, suite.age, t.ext)
+			suite.Equal(t.wantErr, (err != nil))
 		})
 	}
 }
