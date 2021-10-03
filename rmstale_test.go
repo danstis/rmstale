@@ -161,9 +161,9 @@ func (suite *RMStateSuite) TestFileRemoval() {
 			want:      true,
 		},
 		{
-			name:      "Test when given a root folder",
+			name:      "Test when given the root folder",
 			filename:  suite.rootDir,
-			directory: os.TempDir(),
+			directory: suite.rootDir,
 			want:      true,
 		},
 	} {
