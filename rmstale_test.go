@@ -8,245 +8,308 @@ import (
 	"time"
 
 	"github.com/google/logger"
-
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/stretchr/testify/suite"
 )
 
 func init() {
 	initLogger()
 }
 
-func TestAgeDetection(t *testing.T) {
-
-	Convey("Given a file", t, func() {
-		file := tempFile(t, "file1", os.TempDir())
-		defer os.Remove(file.Name())
-		age := 14
-
-		Convey("With a modification date older than the defined age", func() {
-			setAge(file.Name(), age+5)
-
-			Convey("It is detected as being stale", func() {
-				fi := fileInfo(t, file.Name())
-				So(isStale(fi, age), ShouldBeTrue)
-			})
-		})
-
-		Convey("With a modification date newer than the defined age", func() {
-			setAge(file.Name(), age-5)
-
-			Convey("It is not detected as stale", func() {
-				fi := fileInfo(t, file.Name())
-				So(isStale(fi, age), ShouldBeFalse)
-			})
-		})
-	})
+// RMStaleSuite defines the testing suite with the following files:
+//	rootDir/
+//		oldEmptySubdir/
+//		oldSubdir1/
+//			oldFile2
+//		oldSubdir2/
+//			oldFile3.yes
+//			oldFile3.no
+//		oldSubdir3/
+//			recentFile3
+//		recentSubdir1/
+//		oldFile1
+//		oldFile4.no
+//		oldFile4.yes
+//		recentFile1
+//		recentFile2.no
+//		recentFile2.yes
+type RMStateSuite struct {
+	suite.Suite
+	age            int
+	rootDir        string
+	oldEmptySubdir string
+	oldSubdir1     string
+	oldFile2       *os.File
+	oldSubdir2     string
+	oldFile3yes    *os.File
+	oldFile3no     *os.File
+	oldSubdir3     string
+	recentFile3    *os.File
+	recentSubdir1  string
+	oldFile1       *os.File
+	oldFile4no     *os.File
+	oldFile4yes    *os.File
+	recentFile1    *os.File
+	recentFile2no  *os.File
+	recentFile2yes *os.File
 }
 
-func TestFileRemoval(t *testing.T) {
+// The SetupTest method will be run before every test in the suite.
+func (suite *RMStateSuite) SetupTest() {
+	// Create folder structure
+	suite.rootDir = tempDirectory(suite.T(), "rootDir", os.TempDir())
+	suite.oldSubdir1 = tempDirectory(suite.T(), "oldSubdir1", suite.rootDir)
+	suite.oldSubdir2 = tempDirectory(suite.T(), "oldSubdir2", suite.rootDir)
+	suite.oldSubdir3 = tempDirectory(suite.T(), "oldSubdir3", suite.rootDir)
+	suite.oldEmptySubdir = tempDirectory(suite.T(), "oldEmptySubdir", suite.rootDir)
+	suite.recentSubdir1 = tempDirectory(suite.T(), "recentSubdir1", suite.rootDir)
 
-	Convey("Given a file to remove", t, func() {
-		tmpFile := tempFile(t, "removeMe", os.TempDir())
-		defer os.Remove(tmpFile.Name())
-		removeItem(tmpFile.Name(), os.TempDir())
+	// Create file structure
+	suite.oldFile2 = tempFile(suite.T(), "oldFile2", suite.oldSubdir1)
+	suite.oldFile3no = tempFile(suite.T(), "oldFile3.*.no", suite.oldSubdir2)
+	suite.oldFile3yes = tempFile(suite.T(), "oldFile3.*.yes", suite.oldSubdir2)
+	suite.oldFile1 = tempFile(suite.T(), "oldFile1", suite.rootDir)
+	suite.oldFile4no = tempFile(suite.T(), "oldFile4.*.no", suite.rootDir)
+	suite.oldFile4yes = tempFile(suite.T(), "oldFile4.*.yes", suite.rootDir)
+	suite.recentFile1 = tempFile(suite.T(), "recentFile1", suite.rootDir)
+	suite.recentFile2no = tempFile(suite.T(), "recentFile2.*.no", suite.rootDir)
+	suite.recentFile2yes = tempFile(suite.T(), "recentFile2.*.yes", suite.rootDir)
+	suite.recentFile3 = tempFile(suite.T(), "recentFile3", suite.oldSubdir3)
 
-		Convey("The file no longer exists", func() {
-			So(exists(tmpFile.Name()), ShouldBeFalse)
-		})
-	})
-
-	Convey("Given a directory to remove", t, func() {
-		tmpDir := tempDirectory(t, "toRemove", os.TempDir())
-		defer os.RemoveAll(tmpDir)
-		removeItem(tmpDir, os.TempDir())
-
-		Convey("The directory no longer exists", func() {
-			So(exists(tmpDir), ShouldBeFalse)
-		})
-	})
-
-	Convey("Given the root folder to remove", t, func() {
-		tmpDir := tempDirectory(t, "toStay", os.TempDir())
-		defer os.RemoveAll(tmpDir)
-		removeItem(tmpDir, tmpDir)
-
-		Convey("The root folder is not removed", func() {
-			So(exists(tmpDir), ShouldBeTrue)
-		})
-	})
+	// Set the ages of the files and folders
+	suite.age = 14
+	setAge(suite.oldSubdir1, suite.age+4)
+	setAge(suite.oldSubdir2, suite.age+4)
+	setAge(suite.oldSubdir3, suite.age+4)
+	setAge(suite.oldEmptySubdir, suite.age+4)
+	setAge(suite.recentSubdir1, suite.age-4)
+	setAge(suite.oldFile1.Name(), suite.age+4)
+	setAge(suite.oldFile2.Name(), suite.age+4)
+	setAge(suite.oldFile3no.Name(), suite.age+4)
+	setAge(suite.oldFile3yes.Name(), suite.age+4)
+	setAge(suite.oldFile4no.Name(), suite.age+4)
+	setAge(suite.oldFile4yes.Name(), suite.age+4)
+	setAge(suite.recentFile1.Name(), suite.age-4)
+	setAge(suite.recentFile2no.Name(), suite.age-4)
+	setAge(suite.recentFile2yes.Name(), suite.age-4)
+	setAge(suite.recentFile3.Name(), suite.age-4)
 }
 
-func TestEmptyDirectoryDetection(t *testing.T) {
-
-	Convey("Given an empty directory", t, func() {
-		tmpDir := tempDirectory(t, "emptyDir", os.TempDir())
-		defer os.RemoveAll(tmpDir)
-
-		Convey("It is detected as being empty", func() {
-			empty, err := isEmpty(tmpDir)
-			if err != nil {
-				t.Fatal(err)
-			}
-			So(empty, ShouldBeTrue)
-		})
-	})
-
-	Convey("Given a directory containing a file", t, func() {
-		tmpDir := tempDirectory(t, "emptyDir", os.TempDir())
-		defer os.RemoveAll(tmpDir)
-		tmpFile := tempFile(t, "abc", tmpDir)
-		defer os.Remove(tmpFile.Name())
-
-		Convey("It is detected as not being empty", func() {
-			empty, err := isEmpty(tmpDir)
-			if err != nil {
-				t.Fatal(err)
-			}
-			So(empty, ShouldBeFalse)
-		})
-	})
+// The TearDownTest method will be run after every test in the suite.
+func (suite *RMStateSuite) TearDownTest() {
+	os.RemoveAll(suite.rootDir)
 }
 
-func TestDirectoryProcessing(t *testing.T) {
-
-	Convey("Given a folder with files and subfolders", t, func() {
-		// Create the following structure:
-		//		rootDir/
-		//			oldSubdir1/
-		//				oldFile2
-		//			oldSubdir2/
-		//				oldFile3.yes
-		//				oldFile3.no
-		//			oldSubdir3/
-		//				recentFile3
-		//			oldEmptySubdir/
-		//			recentSubdir1/
-		//			oldFile1
-		//			oldFile4.no
-		//			oldFile4.yes
-		//			recentFile1
-		//			recentFile2.no
-		//			recentFile2.yes
-
-		// Create folder structure
-		rootDir := tempDirectory(t, "rootDir", os.TempDir())
-		defer os.RemoveAll(rootDir)
-		oldSubdir1 := tempDirectory(t, "oldSubdir1", rootDir)
-		defer os.RemoveAll(oldSubdir1)
-		oldSubdir2 := tempDirectory(t, "oldSubdir2", rootDir)
-		defer os.RemoveAll(oldSubdir2)
-		oldSubdir3 := tempDirectory(t, "oldSubdir3", rootDir)
-		defer os.RemoveAll(oldSubdir3)
-		oldEmptySubdir := tempDirectory(t, "oldEmptySubdir", rootDir)
-		defer os.RemoveAll(oldEmptySubdir)
-		recentSubdir1 := tempDirectory(t, "recentSubdir1", rootDir)
-		defer os.RemoveAll(recentSubdir1)
-
-		// Create file structure
-		oldFile2 := tempFile(t, "oldFile2", oldSubdir1)
-		defer os.Remove(oldFile2.Name())
-		oldFile3no := tempFile(t, "oldFile3.*.no", oldSubdir2)
-		defer os.Remove(oldFile3no.Name())
-		oldFile3yes := tempFile(t, "oldFile3.*.yes", oldSubdir2)
-		defer os.Remove(oldFile3yes.Name())
-		oldFile1 := tempFile(t, "oldFile1", rootDir)
-		defer os.Remove(oldFile1.Name())
-		oldFile4no := tempFile(t, "oldFile4.*.no", rootDir)
-		defer os.Remove(oldFile4no.Name())
-		oldFile4yes := tempFile(t, "oldFile4.*.yes", rootDir)
-		defer os.Remove(oldFile4yes.Name())
-		recentFile1 := tempFile(t, "recentFile1", rootDir)
-		defer os.Remove(recentFile1.Name())
-		recentFile2no := tempFile(t, "recentFile2.*.no", rootDir)
-		defer os.Remove(recentFile2no.Name())
-		recentFile2yes := tempFile(t, "recentFile2.*.yes", rootDir)
-		defer os.Remove(recentFile2yes.Name())
-		recentFile3 := tempFile(t, "recentFile3", oldSubdir3)
-		defer os.Remove(recentFile3.Name())
-
-		// Set the ages of the files and folders
-		age := 14
-		setAge(oldSubdir1, age+4)
-		setAge(oldSubdir2, age+4)
-		setAge(oldSubdir3, age+4)
-		setAge(oldEmptySubdir, age+4)
-		setAge(recentSubdir1, age-4)
-		setAge(oldFile1.Name(), age+4)
-		setAge(oldFile2.Name(), age+4)
-		setAge(oldFile3no.Name(), age+4)
-		setAge(oldFile3yes.Name(), age+4)
-		setAge(oldFile4no.Name(), age+4)
-		setAge(oldFile4yes.Name(), age+4)
-		setAge(recentFile1.Name(), age-4)
-		setAge(recentFile2no.Name(), age-4)
-		setAge(recentFile2yes.Name(), age-4)
-		setAge(recentFile3.Name(), age-4)
-
-		Convey("Told to process unfiltered removals", func() {
-			if err := procDir(rootDir, rootDir, age, ""); err != nil {
-				t.Fatal(err)
-			}
-
-			Convey("Old files are removed", func() {
-				So(exists(oldFile1.Name()), ShouldBeFalse)
-				So(exists(oldFile2.Name()), ShouldBeFalse)
-				So(exists(oldFile3no.Name()), ShouldBeFalse)
-				So(exists(oldFile3yes.Name()), ShouldBeFalse)
-				So(exists(oldFile4no.Name()), ShouldBeFalse)
-				So(exists(oldFile4yes.Name()), ShouldBeFalse)
-			})
-
-			Convey("New files are retained", func() {
-				So(exists(recentFile1.Name()), ShouldBeTrue)
-				So(exists(recentFile2no.Name()), ShouldBeTrue)
-				So(exists(recentFile2yes.Name()), ShouldBeTrue)
-			})
-
-			Convey("Empty directories that are old and contain no files are removed", func() {
-				So(exists(oldSubdir1), ShouldBeFalse)
-				So(exists(oldEmptySubdir), ShouldBeFalse)
-			})
-
-			Convey("Empty directories that are old and contain files are retained", func() {
-				So(exists(oldSubdir3), ShouldBeTrue)
-			})
-
-			Convey("Empty directories that are new but contain no files are retained", func() {
-				So(exists(recentSubdir1), ShouldBeTrue)
-			})
+// TestAgeDetection tests the detection of stale files
+func (suite *RMStateSuite) TestAgeDetection() {
+	for _, t := range []struct {
+		name     string
+		filename string
+		want     bool
+	}{
+		{
+			name:     "Test with an old file",
+			filename: suite.oldFile1.Name(),
+			want:     true,
+		},
+		{
+			name:     "Test with an old folder",
+			filename: suite.oldSubdir1,
+			want:     true,
+		},
+		{
+			name:     "Test with a new file",
+			filename: suite.recentFile1.Name(),
+			want:     false,
+		},
+		{
+			name:     "Test with a new folder",
+			filename: suite.recentSubdir1,
+			want:     false,
+		},
+	} {
+		suite.Run(t.name, func() {
+			got := isStale(fileInfo(suite.T(), t.filename), suite.age)
+			suite.Equal(t.want, got)
 		})
+	}
+}
 
-		Convey("Told to process filtered removals", func() {
-			if err := procDir(rootDir, rootDir, age, "yes"); err != nil {
-				t.Fatal(err)
-			}
-
-			Convey("Old files with matching extension are removed", func() {
-				So(exists(oldFile3yes.Name()), ShouldBeFalse)
-				So(exists(oldFile4yes.Name()), ShouldBeFalse)
-			})
-
-			Convey("Old files not matching extension are retained", func() {
-				So(exists(oldFile3no.Name()), ShouldBeTrue)
-				So(exists(oldFile4no.Name()), ShouldBeTrue)
-			})
-
-			Convey("New files are retained", func() {
-				So(exists(recentFile1.Name()), ShouldBeTrue)
-				So(exists(recentFile2no.Name()), ShouldBeTrue)
-				So(exists(recentFile2yes.Name()), ShouldBeTrue)
-				So(exists(recentFile3.Name()), ShouldBeTrue)
-			})
-
-			Convey("Directories are retained", func() {
-				So(exists(recentSubdir1), ShouldBeTrue)
-				So(exists(oldSubdir1), ShouldBeTrue)
-				So(exists(oldSubdir2), ShouldBeTrue)
-				So(exists(oldSubdir3), ShouldBeTrue)
-				So(exists(oldEmptySubdir), ShouldBeTrue)
-			})
+// TestAgeDetection tests the removal of old files
+func (suite *RMStateSuite) TestFileRemoval() {
+	for _, t := range []struct {
+		name      string
+		filename  string
+		directory string
+		want      bool
+	}{
+		{
+			name:      "Test with a file",
+			filename:  suite.oldFile1.Name(),
+			directory: suite.rootDir,
+			want:      false,
+		},
+		{
+			name:      "Test with an empty folder",
+			filename:  suite.oldEmptySubdir,
+			directory: suite.rootDir,
+			want:      false,
+		},
+		{
+			name:      "Test with a non-empty folder",
+			filename:  suite.oldSubdir1,
+			directory: suite.rootDir,
+			want:      true,
+		},
+		{
+			name:      "Test when given the root folder",
+			filename:  suite.rootDir,
+			directory: suite.rootDir,
+			want:      true,
+		},
+	} {
+		suite.Run(t.name, func() {
+			removeItem(t.filename, t.directory)
+			got := exists(t.filename)
+			suite.Equal(t.want, got)
 		})
-	})
+	}
+}
+
+// TestEmptyDirectoryDetection tests the empty folder detection
+func (suite *RMStateSuite) TestEmptyDirectoryDetection() {
+	for _, t := range []struct {
+		name      string
+		filename  string
+		directory string
+		want      bool
+		wantErr   bool
+	}{
+		{
+			name:      "Test with the root folder",
+			directory: suite.rootDir,
+			want:      false,
+			wantErr:   false,
+		},
+		{
+			name:      "Test with an old empty folder",
+			directory: suite.oldEmptySubdir,
+			want:      true,
+			wantErr:   false,
+		},
+		{
+			name:      "Test with an new empty folder",
+			directory: suite.recentSubdir1,
+			want:      true,
+			wantErr:   false,
+		},
+		{
+			name:      "Test with a non-existing folder",
+			directory: "fakefile",
+			want:      false,
+			wantErr:   true,
+		},
+	} {
+		suite.Run(t.name, func() {
+			got, err := isEmpty(t.directory)
+			suite.Equal(t.wantErr, (err != nil))
+			suite.Equal(t.want, got)
+		})
+	}
+}
+
+// TestProcDirErrors tests the edge cases for the procDir function
+func (suite *RMStateSuite) TestProcDirErrors() {
+	for _, t := range []struct {
+		name      string
+		path      string
+		directory string
+		ext       string
+		wantErr   bool
+	}{
+		{
+			name:      "Test with a missing file",
+			path:      "badFile",
+			directory: suite.rootDir,
+			ext:       "",
+			wantErr:   true,
+		},
+		{
+			name:      "Test with a file",
+			path:      suite.oldFile1.Name(),
+			directory: suite.oldFile1.Name(),
+			ext:       "",
+			wantErr:   true,
+		},
+	} {
+		suite.Run(t.name, func() {
+			err := procDir(t.path, t.directory, suite.age, t.ext)
+			suite.Equal(t.wantErr, (err != nil))
+		})
+	}
+}
+
+// TestDirectoryProcessing tests the running the entire process over a directory
+func (suite *RMStateSuite) TestDirectoryProcessing() {
+	err := procDir(suite.rootDir, suite.rootDir, suite.age, "")
+	// Ensure that err == nil
+	suite.Nil(err)
+
+	// Check that all of the old files are removed
+	suite.False(exists(suite.oldFile1.Name()))
+	suite.False(exists(suite.oldFile2.Name()))
+	suite.False(exists(suite.oldFile3no.Name()))
+	suite.False(exists(suite.oldFile3yes.Name()))
+	suite.False(exists(suite.oldFile4no.Name()))
+	suite.False(exists(suite.oldFile4yes.Name()))
+
+	// Check that the new files are retained
+	suite.True(exists(suite.recentFile1.Name()))
+	suite.True(exists(suite.recentFile2no.Name()))
+	suite.True(exists(suite.recentFile2yes.Name()))
+
+	// Check old empty directories are removed
+	suite.False(exists(suite.oldSubdir1))
+	suite.False(exists(suite.oldEmptySubdir))
+
+	// Check that the old directories that still have files are retained
+	suite.True(exists(suite.oldSubdir3))
+
+	// Check that new directories that contain no files are retained
+	suite.True(exists(suite.recentSubdir1))
+}
+
+// TestFilteredDirectoryProcessing tests the running the entire process over a directory
+func (suite *RMStateSuite) TestFilteredDirectoryProcessing() {
+	err := procDir(suite.rootDir, suite.rootDir, suite.age, "yes")
+	// Ensure that err == nil
+	suite.Nil(err)
+
+	// Check that all of the old files matching the extension are removed
+	suite.False(exists(suite.oldFile3yes.Name()))
+	suite.False(exists(suite.oldFile4yes.Name()))
+
+	// Check that all of the old files not matching the extension are retained
+	suite.True(exists(suite.oldFile3no.Name()))
+	suite.True(exists(suite.oldFile4no.Name()))
+
+	// Check that the new files are retained
+	suite.True(exists(suite.recentFile1.Name()))
+	suite.True(exists(suite.recentFile2no.Name()))
+	suite.True(exists(suite.recentFile2yes.Name()))
+	suite.True(exists(suite.recentFile3.Name()))
+
+	// Check all directories are retained
+	suite.True(exists(suite.recentSubdir1))
+	suite.True(exists(suite.oldSubdir1))
+	suite.True(exists(suite.oldSubdir2))
+	suite.True(exists(suite.oldSubdir3))
+	suite.True(exists(suite.oldEmptySubdir))
+}
+
+// In order for 'go test' to run this suite, we need to create
+// a normal test function and pass our suite to suite.Run
+func TestRunSuite(t *testing.T) {
+	suite.Run(t, new(RMStateSuite))
 }
 
 func initLogger() {
