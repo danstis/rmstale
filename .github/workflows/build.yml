@@ -59,6 +59,7 @@ jobs:
 
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@master # https://github.com/marketplace/actions/sonarcloud-scan
+        if: ${{ github.actor != 'dependabot[bot]' }}
         with:
           args: >
             -Dsonar.projectVersion=${{ steps.gitversion.outputs.FullSemVer }}
