@@ -19,7 +19,7 @@ jobs:
     name: Lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v2 # https://github.com/marketplace/actions/run-golangci-lint
         with:
@@ -36,7 +36,7 @@ jobs:
         id: go
 
       - name: Check out code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysis
 
@@ -79,7 +79,7 @@ jobs:
         id: go
 
       - name: Check out code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
@@ -103,7 +103,7 @@ jobs:
           tag_prefix: v
 
       - name: Check out code
-        uses: actions/checkout@v2.3.4
+        uses: actions/checkout@v3
         if: ${{ steps.gitversion.outputs.PreReleaseTagWithDash == '' }}
         with:
           fetch-depth: 0
