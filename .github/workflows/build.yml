@@ -53,7 +53,7 @@ jobs:
         run: go test -v -coverprofile=coverage.out -covermode=count -json ./... > test-report.out
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v2.1.0
+        uses: codecov/codecov-action@v3
         with:
           file: ./coverage.out # optional
 
