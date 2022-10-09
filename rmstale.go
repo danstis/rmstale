@@ -137,7 +137,6 @@ func isEmpty(name string) (bool, error) {
 	if err == io.EOF {
 		return true, nil
 	}
-	f.Sync()
 	return false, err
 }
 
