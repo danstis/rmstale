@@ -4,7 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"io/ioutil"
+	"io/fs"
 	"log"
 	"os"
 	"path"
@@ -18,43 +18,65 @@ import (
 // AppVersion controls the application version number
 var AppVersion = "0.0.0"
 
-func main() {
-	folder := flag.String("path", os.TempDir(), "Path to check for stale files.")
-	age := flag.Int("age", 0, "Age in days to check for file modification.")
-	confirm := flag.Bool("y", false, "Don't prompt for confirmation.")
-	ext := flag.String("extension", "", "Filter files by extension.")
-	version := flag.Bool("version", false, "Display version information.")
-	extMsg := ""
+const usage = `Usage of rmstale:
+  -a, --age 		Period in days before an item is considered stale.
+  -p, --path		Path to a folder to process.
+  -y, --confirm		Allows for processing without confirmation prompt, useful for scheduling.
+  -v, --version		Displays the version of rmstale that is currently running.
+  -e, --extension	Filter files for a defined file extension.
+`
 
-	defer logger.Init("rmstale", true, true, ioutil.Discard).Close()
+func main() {
+	var (
+		folder  string
+		age     int
+		confirm bool
+		ext     string
+		version bool
+		extMsg  string
+	)
+	flag.StringVar(&folder, "p", os.TempDir(), "Path to check for stale files.")
+	flag.StringVar(&folder, "path", os.TempDir(), "Path to check for stale files.")
+	flag.IntVar(&age, "a", 0, "Age in days to check for file modification.")
+	flag.IntVar(&age, "age", 0, "Age in days to check for file modification.")
+	flag.BoolVar(&confirm, "y", false, "Don't prompt for confirmation.")
+	flag.BoolVar(&confirm, "confirm", false, "Don't prompt for confirmation.")
+	flag.StringVar(&ext, "e", "", "Filter files by extension.")
+	flag.StringVar(&ext, "extension", "", "Filter files by extension.")
+	flag.BoolVar(&version, "v", false, "Display version information.")
+	flag.BoolVar(&version, "version", false, "Display version information.")
+	flag.Usage = func() { fmt.Print(usage) }
+	flag.Parse()
+
+	defer logger.Init("rmstale", true, true, io.Discard).Close()
 	logger.SetFlags(log.Ltime)
 
 	flag.Parse()
 
-	if *ext != "" {
-		extMsg = fmt.Sprintf(" with extension '%v'", *ext)
+	if ext != "" {
+		extMsg = fmt.Sprintf(" with extension '%v'", ext)
 	}
 
-	if *version {
+	if version {
 		fmt.Printf("rmstale v%v\n", AppVersion)
 		return
 	}
 
-	if *age == 0 {
+	if age == 0 {
 		flag.PrintDefaults()
 		return
 	}
 
-	if !*confirm {
-		if ok := prompt.Confirm("WARNING: Will remove files and folders recursively below '%v'%s older than %v days. Continue?", filepath.FromSlash(*folder), extMsg, *age); !ok {
+	if !confirm {
+		if ok := prompt.Confirm("WARNING: Will remove files and folders recursively below '%v'%s older than %v days. Continue?", filepath.FromSlash(folder), extMsg, age); !ok {
 			logger.Warning("Operation not confirmed, exiting.")
 			return
 		}
 	}
 
-	logger.Infof("rmstale started against folder '%v'%s for contents older than %v days.", filepath.FromSlash(*folder), extMsg, *age)
+	logger.Infof("rmstale started against folder '%v'%s for contents older than %v days.", filepath.FromSlash(folder), extMsg, age)
 
-	if err := procDir(*folder, *folder, *age, *ext); err != nil {
+	if err := procDir(folder, folder, age, ext); err != nil {
 		logger.Errorf("Something went wrong: %v", err)
 	}
 }
@@ -67,12 +89,20 @@ func procDir(fp, rootFolder string, age int, ext string) error {
 	}
 
 	// get the directory contents
-	contents, err := ioutil.ReadDir(fp)
+	contents, err := os.ReadDir(fp)
 	if err != nil {
 		return err
 	}
+	infos := make([]fs.FileInfo, 0, len(contents))
+	for _, entry := range contents {
+		info, err := entry.Info()
+		if err != nil {
+			return err
+		}
+		infos = append(infos, info)
+	}
 
-	for _, item := range contents {
+	for _, item := range infos {
 		if item.IsDir() {
 			if err := procDir(path.Join(fp, item.Name()), rootFolder, age, ext); err != nil {
 				return err

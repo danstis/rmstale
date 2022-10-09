@@ -1,7 +1,7 @@
 package main
 
 import (
-	"io/ioutil"
+	"io"
 	"log"
 	"os"
 	"testing"
@@ -16,6 +16,7 @@ func init() {
 }
 
 // RMStaleSuite defines the testing suite with the following files:
+//
 //	rootDir/
 //		oldEmptySubdir/
 //		oldSubdir1/
@@ -313,7 +314,7 @@ func TestRunSuite(t *testing.T) {
 }
 
 func initLogger() {
-	defer logger.Init("rmstale_test", true, false, ioutil.Discard).Close()
+	defer logger.Init("rmstale_test", true, false, io.Discard).Close()
 	logger.SetFlags(log.Ltime | log.Lshortfile)
 }
 
@@ -327,7 +328,7 @@ func fileInfo(t *testing.T, fn string) os.FileInfo {
 
 func tempFile(t *testing.T, prefix, dir string) *os.File {
 	content := []byte("Test file contents")
-	tmpFile, err := ioutil.TempFile(dir, prefix)
+	tmpFile, err := os.CreateTemp(dir, prefix)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -342,7 +343,7 @@ func tempFile(t *testing.T, prefix, dir string) *os.File {
 }
 
 func tempDirectory(t *testing.T, prefix, dir string) string {
-	tmpDir, err := ioutil.TempDir(dir, prefix)
+	tmpDir, err := os.MkdirTemp(dir, prefix)
 	if err != nil {
 		t.Fatal(err)
 	}
