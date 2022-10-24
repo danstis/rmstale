@@ -5,7 +5,7 @@ go 1.19
 require (
 	github.com/google/logger v1.1.1
 	github.com/segmentio/go-prompt v1.2.1-0.20161017233205-f0d19b6901ad
-	github.com/stretchr/testify v1.8.0
+	github.com/stretchr/testify v1.8.1
 )
 
 require (
