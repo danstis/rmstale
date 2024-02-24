@@ -19,7 +19,7 @@ jobs:
     name: Lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: actions/setup-go@v4
         with:
           go-version: 1.17
@@ -39,7 +39,7 @@ jobs:
         id: go
 
       - name: Check out code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysis
 
@@ -82,7 +82,7 @@ jobs:
         id: go
 
       - name: Check out code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -106,7 +106,7 @@ jobs:
           tag_prefix: v
 
       - name: Check out code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         if: ${{ steps.gitversion.outputs.PreReleaseTagWithDash == '' }}
         with:
           fetch-depth: 0
