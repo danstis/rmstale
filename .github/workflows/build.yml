@@ -128,13 +128,13 @@ jobs:
         run: mkdir -p ${{ github.workspace }}/bin/chocolatey
 
       - name: Package chocolaty binary # Output path refers to the mapped docker volume (/wksp)
-        uses: crazy-max/ghaction-chocolatey@v2
+        uses: crazy-max/ghaction-chocolatey@v3
         if: ${{ steps.gitversion.outputs.PreReleaseTagWithDash == '' }}
         with:
           args: pack rmstale.nuspec --outputdirectory /wksp/bin/chocolatey
 
       - name: Push package to chocolatey.org
-        uses: crazy-max/ghaction-chocolatey@v2
+        uses: crazy-max/ghaction-chocolatey@v3
         if: ${{ steps.gitversion.outputs.PreReleaseTagWithDash == '' }}
         with:
           args: push /wksp/bin/chocolatey/rmstale.${{ steps.gitversion.outputs.FullSemVer }}.nupkg --source https://push.chocolatey.org/ --apikey ${{ secrets.CHOCO_KEY }}
