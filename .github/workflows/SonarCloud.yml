@@ -1,0 +1,60 @@
+name: Scan with SonarCloud
+
+on:
+  push:
+    branches:
+      - main
+      - master
+      - beta
+      - "feature/*"
+      - "fix/*"
+  pull_request:
+    branches:
+      - main
+      - master
+  schedule:
+    - cron: "05 07 * * 6"
+  workflow_dispatch:
+
+jobs:
+  SonarCloud:
+    name: Scan with SonarCloud
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Go 1.x
+        uses: actions/setup-go@v4
+        with:
+          go-version: ^1.15
+        id: go
+
+      - name: Check out code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysis
+
+      - name: Install GitVersion
+        uses: gittools/actions/gitversion/setup@v0.11.0
+        with:
+          versionSpec: "5.x"
+
+      - name: Version with GitVersion # https://github.com/marketplace/actions/use-actions
+        id: gitversion
+        uses: gittools/actions/gitversion/execute@v0.11.0
+
+      - name: Run tests
+        run: go test -v -coverprofile=coverage.out -covermode=count -json ./... > test-report.out
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4.0.1
+        with:
+          file: ./coverage.out # optional
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master # https://github.com/marketplace/actions/sonarcloud-scan
+        if: ${{ github.actor != 'dependabot[bot]' }}
+        with:
+          args: >
+            -Dsonar.projectVersion=${{ steps.gitversion.outputs.FullSemVer }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Needed to get PR information, if any
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
