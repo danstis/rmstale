@@ -27,6 +27,8 @@ const usage = `Usage of rmstale:
 `
 
 func main() {
+	flag.Usage = func() { fmt.Print(usage) }
+
 	var (
 		folder  string
 		age     int
@@ -45,13 +47,18 @@ func main() {
 	flag.StringVar(&ext, "extension", "", "Filter files by extension.")
 	flag.BoolVar(&version, "v", false, "Display version information.")
 	flag.BoolVar(&version, "version", false, "Display version information.")
-	flag.Usage = func() { fmt.Print(usage) }
+
+	// Parse flags
 	flag.Parse()
 
 	defer logger.Init("rmstale", true, true, io.Discard).Close()
 	logger.SetFlags(log.Ltime)
 
-	flag.Parse()
+	// Check if no command-line arguments were provided
+	if flag.NFlag() == 0 && len(flag.Args()) == 0 {
+		flag.Usage()
+		return
+	}
 
 	if ext != "" {
 		extMsg = fmt.Sprintf(" with extension '%v'", ext)
