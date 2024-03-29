@@ -93,6 +93,10 @@ func versionInfo() string {
 	return fmt.Sprintf("rmstale v%v", AppVersion)
 }
 
+// procDir recursively processes a directory and removes stale files.
+// It takes the file path (fp) of the directory to process, the root folder (rootFolder) for reference,
+// the age (age) in days to determine staleness, and the file extension (ext) to filter files.
+// It returns an error if any operation fails.
 func procDir(fp, rootFolder string, age int, ext string) error {
 	// get the fileInfo for the directory
 	di, err := os.Stat(fp)
@@ -138,6 +142,8 @@ func procDir(fp, rootFolder string, age int, ext string) error {
 }
 
 // isEmpty checks if a directory is empty.
+// It returns true if the directory is empty, false otherwise.
+// An error is returned if there was a problem opening or reading the directory.
 func isEmpty(name string) (bool, error) {
 	f, err := os.Open(name)
 	if err != nil {
