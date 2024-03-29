@@ -54,8 +54,8 @@ func main() {
 	defer logger.Init("rmstale", true, true, io.Discard).Close()
 	logger.SetFlags(log.Ltime)
 
-	// Check if no command-line arguments were provided
-	if flag.NFlag() == 0 && len(flag.Args()) == 0 {
+	// Check if no command-line arguments were provided or if an argument is provided without a '-'
+	if flag.NFlag() == 0 && len(flag.Args()) == 0 || len(flag.Args()) > 0 && flag.Arg(0)[0] != '-' {
 		flag.Usage()
 		return
 	}
