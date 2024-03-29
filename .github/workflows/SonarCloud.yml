@@ -4,14 +4,9 @@ on:
   push:
     branches:
       - main
-      - master
-      - beta
-      - "feature/*"
-      - "fix/*"
   pull_request:
     branches:
       - main
-      - master
   schedule:
     - cron: "05 07 * * 6"
   workflow_dispatch:
@@ -45,7 +40,7 @@ jobs:
         run: go test -v -coverprofile=coverage.out -covermode=count -json ./... > test-report.out
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4.1.0
+        uses: codecov/codecov-action@v4.1.1
         with:
           file: ./coverage.out # optional
 

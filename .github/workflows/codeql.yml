@@ -4,14 +4,12 @@ on:
   push:
     branches:
       - main
-      - master
       - beta
       - "feature/*"
       - "fix/*"
   pull_request:
     branches:
       - main
-      - master
   schedule:
     - cron: "20 08 * * 6"
   workflow_dispatch:
