@@ -58,7 +58,7 @@ func main() {
 	}
 
 	if version {
-		fmt.Printf("rmstale v%v\n", AppVersion)
+		fmt.Println(versionInfo())
 		return
 	}
 
@@ -79,6 +79,11 @@ func main() {
 	if err := procDir(folder, folder, age, ext); err != nil {
 		logger.Errorf("Something went wrong: %v", err)
 	}
+}
+
+// versionInfo returns the version information of the rmstale application
+func versionInfo() string {
+	return fmt.Sprintf("rmstale v%v", AppVersion)
 }
 
 func procDir(fp, rootFolder string, age int, ext string) error {

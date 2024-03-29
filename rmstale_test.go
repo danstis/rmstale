@@ -307,6 +307,13 @@ func (suite *RMStateSuite) TestFilteredDirectoryProcessing() {
 	suite.True(exists(suite.oldEmptySubdir))
 }
 
+// TestVersionInfo tests the version information output
+func (suite *RMStateSuite) TestVersionInfo() {
+	expected := "rmstale v0.0.0"
+	actual := versionInfo()
+	suite.Equal(expected, actual)
+}
+
 // In order for 'go test' to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run
 func TestRunSuite(t *testing.T) {
