@@ -30,12 +30,12 @@ func main() {
 	flag.Usage = func() { fmt.Print(usage) }
 
 	var (
-		folder  string
-		age     int
-		confirm bool
-		ext     string
-		version bool
-		extMsg  string
+		folder      string
+		age         int
+		confirm     bool
+		ext         string
+		showVersion bool
+		extMsg      string
 	)
 	flag.StringVar(&folder, "p", os.TempDir(), "Path to check for stale files.")
 	flag.StringVar(&folder, "path", os.TempDir(), "Path to check for stale files.")
@@ -45,8 +45,8 @@ func main() {
 	flag.BoolVar(&confirm, "confirm", false, "Don't prompt for confirmation.")
 	flag.StringVar(&ext, "e", "", "Filter files by extension.")
 	flag.StringVar(&ext, "extension", "", "Filter files by extension.")
-	flag.BoolVar(&version, "v", false, "Display version information.")
-	flag.BoolVar(&version, "version", false, "Display version information.")
+	flag.BoolVar(&showVersion, "v", false, "Display version information.")
+	flag.BoolVar(&showVersion, "version", false, "Display version information.")
 
 	// Parse flags
 	flag.Parse()
@@ -64,7 +64,7 @@ func main() {
 		extMsg = fmt.Sprintf(" with extension '%v'", ext)
 	}
 
-	if version {
+	if showVersion {
 		fmt.Println(versionInfo())
 		return
 	}
