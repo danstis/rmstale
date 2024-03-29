@@ -29,7 +29,6 @@ jobs:
 
   build:
     name: Build
-    needs: [golangci]
     runs-on: ubuntu-latest
     steps:
       - name: Set up Go 1.x
@@ -39,29 +38,6 @@ jobs:
         id: go
       - name: Check out code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Install GitVersion
-        uses: gittools/actions/gitversion/setup@v1.1.1
-        with:
-          versionSpec: "5.x"
-      - name: Version with GitVersion # https://github.com/marketplace/actions/use-actions
-        id: gitversion
-        uses: gittools/actions/gitversion/execute@v1.1.1
-      - name: Bump version and push tag
-        id: tag_version
-        uses: mathieudutour/github-tag-action@v6.2
-        if: ${{ steps.gitversion.outputs.PreReleaseTagWithDash == '' }}
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          custom_tag: ${{ steps.gitversion.outputs.FullSemVer }}
-          release_branches: main
-          tag_prefix: v
-      - name: Check out code
-        uses: actions/checkout@v4
-        if: ${{ steps.gitversion.outputs.PreReleaseTagWithDash == '' }}
-        with:
-          fetch-depth: 0
       - name: Run tests
         run: go test -v -coverprofile=coverage.out -covermode=count -json ./... > test-report.out
       - name: Run GoReleaser
