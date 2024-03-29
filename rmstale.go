@@ -27,13 +27,15 @@ const usage = `Usage of rmstale:
 `
 
 func main() {
+	flag.Usage = func() { fmt.Print(usage) }
+
 	var (
-		folder  string
-		age     int
-		confirm bool
-		ext     string
-		version bool
-		extMsg  string
+		folder      string
+		age         int
+		confirm     bool
+		ext         string
+		showVersion bool
+		extMsg      string
 	)
 	flag.StringVar(&folder, "p", os.TempDir(), "Path to check for stale files.")
 	flag.StringVar(&folder, "path", os.TempDir(), "Path to check for stale files.")
@@ -43,22 +45,27 @@ func main() {
 	flag.BoolVar(&confirm, "confirm", false, "Don't prompt for confirmation.")
 	flag.StringVar(&ext, "e", "", "Filter files by extension.")
 	flag.StringVar(&ext, "extension", "", "Filter files by extension.")
-	flag.BoolVar(&version, "v", false, "Display version information.")
-	flag.BoolVar(&version, "version", false, "Display version information.")
-	flag.Usage = func() { fmt.Print(usage) }
+	flag.BoolVar(&showVersion, "v", false, "Display version information.")
+	flag.BoolVar(&showVersion, "version", false, "Display version information.")
+
+	// Parse flags
 	flag.Parse()
 
 	defer logger.Init("rmstale", true, true, io.Discard).Close()
 	logger.SetFlags(log.Ltime)
 
-	flag.Parse()
+	// Check if no command-line arguments were provided or if an argument is provided without a '-'
+	if flag.NFlag() == 0 && len(flag.Args()) == 0 || len(flag.Args()) > 0 && flag.Arg(0)[0] != '-' {
+		flag.Usage()
+		return
+	}
 
 	if ext != "" {
 		extMsg = fmt.Sprintf(" with extension '%v'", ext)
 	}
 
-	if version {
-		fmt.Printf("rmstale v%v\n", AppVersion)
+	if showVersion {
+		fmt.Println(versionInfo())
 		return
 	}
 
@@ -81,6 +88,15 @@ func main() {
 	}
 }
 
+// versionInfo returns the version information of the rmstale application
+func versionInfo() string {
+	return fmt.Sprintf("rmstale v%v", AppVersion)
+}
+
+// procDir recursively processes a directory and removes stale files.
+// It takes the file path (fp) of the directory to process, the root folder (rootFolder) for reference,
+// the age (age) in days to determine staleness, and the file extension (ext) to filter files.
+// It returns an error if any operation fails.
 func procDir(fp, rootFolder string, age int, ext string) error {
 	// get the fileInfo for the directory
 	di, err := os.Stat(fp)
@@ -126,6 +142,8 @@ func procDir(fp, rootFolder string, age int, ext string) error {
 }
 
 // isEmpty checks if a directory is empty.
+// It returns true if the directory is empty, false otherwise.
+// An error is returned if there was a problem opening or reading the directory.
 func isEmpty(name string) (bool, error) {
 	f, err := os.Open(name)
 	if err != nil {
