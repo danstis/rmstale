@@ -31,10 +31,7 @@ jobs:
           }
 
           # getting latest wingetcreate file
-          $downloadStatus = iwr https://aka.ms/wingetcreate/latest -OutFile wingetcreate.exe
-          if ($downloadStatus.StatusCode -ne 200) {
-            Write-Error "Failed to download wingetcreate.exe"
-          }
+          iwr https://aka.ms/wingetcreate/latest -OutFile wingetcreate.exe
           try {
             .\wingetcreate.exe update $wingetPackage --submit --version $ver --urls $installerAmd64Url $installerArm64Url $installerX86Url --token $gitToken
           } catch {
