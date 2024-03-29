@@ -1,43 +1,62 @@
 # Contributing to rmstale
 
-Hello contributor! Thanks for your contributions to the project, it's really appreciated. 🎉
+Hello, contributor! We're thrilled to have you on board and grateful for your contributions to the project. Your efforts help make rmstale even better. 🎉
 
-This document provides guidelines on the process to contribute to the project. In general Issues and Pull Requests will
-be accepted that don't follow these guidelines, however they may take longer to merge.
+This document outlines the guidelines for contributing to the project. We strive to maintain a welcoming and efficient process for contributions. While we accept issues and pull requests that don't strictly follow these guidelines, adherence to them can significantly speed up the merging process.
 
-**Table of Contents**
+## Table of Contents
 
 - [Contributing to rmstale](#contributing-to-rmstale)
+  - [Table of Contents](#table-of-contents)
   - [Code of Conduct](#code-of-conduct)
-  - [What to Know Before I Get Started?](#what-to-know-before-i-get-started)
-  - [How to Contribute?](#how-to-contribute)
+  - [Before You Start](#before-you-start)
+  - [How to Contribute](#how-to-contribute)
     - [Reporting Bugs](#reporting-bugs)
     - [Suggesting Enhancements](#suggesting-enhancements)
     - [Contributing Code](#contributing-code)
 
 ## Code of Conduct
 
-This project and everyone participating in it is governed by the [Code of Conduct](CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code.
+This project and everyone participating in it are governed by the [Code of Conduct](CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code. Please report unacceptable behaviour to [project maintainers](mailto:rmstale@bsod.co.nz).
 
-## What to Know Before I Get Started?
+## Before You Start
 
-rmstale is intended to be a small, lightweight tool, intended to work cross-platform. Changes that only work on a single platform will be accepted, as long as they do not break functionality on other platforms.
-The tool is designed to be a command-line application, without a user interface. Changes that introduce new user interfaces will also be approved as long as they do not break command-line functionality.
+rmstale is a small, lightweight, cross-platform tool intended primarily for command-line usage. While contributions that add functionality specific to one platform are welcome, they should not impair the tool's operation on other platforms. Similarly, while we welcome additions that introduce new user interfaces, these should not detract from the command-line interface.
 
-## How to Contribute?
+## How to Contribute
 
 ### Reporting Bugs
 
-Before creating a bug report, please check the existing issues [here](https://github.com/danstis/rmstale/labels/bug) to ensure it has not already been raised. Also check [Discussions](https://github.com/danstis/rmstale/discussions) to see if this has already been discussed.
+Before submitting a bug report, please:
 
-Bugs are tracked using GitHub issues. Please ensure your create the issue with as many details as possible. A good bug report should highlight the expected behaviour vs the actual behaviour. It should also provide information regarding the circumstances that allow the bug to be reproduced where possible (platform/other software/etc.).
-If possible include a list of steps that allows others to reproduce the bug.
+- Check [existing issues](https://github.com/danstis/rmstale/labels/bug) to avoid duplicates.
+- Explore [Discussions](https://github.com/danstis/rmstale/discussions) for similar topics.
 
-When creating bug related issues, please be clear in the issue that it is related to a bug.
+When reporting bugs, create a GitHub issue providing:
+
+- A clear title and description.
+- Expected vs. actual behavior.
+- Steps to reproduce the issue.
+- Any relevant environment details (OS, tool versions).
 
 ### Suggesting Enhancements
 
-Product enhancements are also tracked using GitHub issues.
+For feature requests and enhancements, please use GitHub issues to describe:
+
+- The desired feature/enhancement.
+- Its potential benefits.
+- Any preliminary ideas on how it might be implemented.
 
 ### Contributing Code
-TODO: Update this section
+
+1. **Fork the Repository**: Start by forking the repository to your GitHub account.
+2. **Clone Locally**: Clone your forked repository to your local machine to start working on changes.
+3. **Branch**: Create a new branch for your feature or bug fix. Branch names should be descriptive (e.g., `feat/feature-x` or `fix/issue-y`).
+4. **Develop**: Make your changes, adhering to the project's coding standards and guidelines. Write or update tests as necessary.
+5. **Commit**: Use clear and descriptive commit messages. Break up large changes into smaller commits that are easier to review.
+6. **Test**: Run the project's test suite to ensure your changes don't break existing functionality.
+7. **Pull Request**: Push your changes to your fork and submit a pull request to the main repository. Provide a clear description of the changes and any related issue numbers.
+
+We welcome contributions of all sizes and thank you for taking the time to contribute to rmstale!
+
+Thank you for contributing to rmstale. Your efforts are greatly appreciated by the community!
