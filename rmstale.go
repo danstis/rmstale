@@ -99,7 +99,7 @@ func prompt(format string, a ...interface{}) bool {
 	_, err := fmt.Scanln(&response)
 	if err != nil {
 		logger.Errorf("Failed to read user input: %v", err)
-		os.Exit(1)
+		return false
 	}
 	return strings.ToLower(response) == "y"
 }
