@@ -2,20 +2,18 @@ name: Release
 
 on:
   push:
-    tags:
-      - "**"
+    branches:
+      - main
   workflow_dispatch:
 
 jobs:
-  release:
-    name: Create Release
+  tag:
+    name: Tag build
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.gitversion.outputs.FullSemVer }}
+      prerelease: ${{ steps.gitversion.outputs.PreReleaseTagWithDash }}
     steps:
-      - name: Set up Go 1.x
-        uses: actions/setup-go@v5
-        with:
-          go-version: ^1.17
-        id: go
       - name: Check out code
         uses: actions/checkout@v4
         with:
@@ -27,6 +25,29 @@ jobs:
       - name: Version with GitVersion # https://github.com/marketplace/actions/use-actions
         id: gitversion
         uses: gittools/actions/gitversion/execute@v1.1.1
+
+      - name: Bump version and push tag
+        id: tag_version
+        uses: mathieudutour/github-tag-action@v6.2
+        if: ${{ steps.gitversion.outputs.PreReleaseTagWithDash == '' }}
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          custom_tag: ${{ steps.gitversion.outputs.FullSemVer }}
+          release_branches: main
+          tag_prefix: v
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    needs: tag
+    if: ${{ needs.tag.outputs.prerelease == '' }}
+    steps:
+      - name: Set up Go 1.x
+        uses: actions/setup-go@v5
+        with:
+          go-version: ^1.17
+        id: go
+      - name: Check out code
+        uses: actions/checkout@v4
       - name: Run tests
         run: go test -v -coverprofile=coverage.out -covermode=count -json ./... > test-report.out
       - name: Run GoReleaser
@@ -49,4 +70,36 @@ jobs:
       - name: Push package to chocolatey.org
         uses: crazy-max/ghaction-chocolatey@v3
         with:
-          args: push /wksp/bin/chocolatey/rmstale.${{ steps.gitversion.outputs.FullSemVer }}.nupkg --source https://push.chocolatey.org/ --apikey ${{ secrets.CHOCO_KEY }}
+          args: push /wksp/bin/chocolatey/rmstale.${{ needs.tag.outputs.version }}.nupkg --source https://push.chocolatey.org/ --apikey ${{ secrets.CHOCO_KEY }}
+  winget:
+    name: Publish winget package
+    runs-on: windows-latest
+    needs: release
+    environment: winget
+    steps:
+      - name: Submit danstis.rmstale package to WinGet Community Repository
+        run: |
+          $ErrorActionPreference = "Stop"
+
+          $wingetPackage = "danstis.rmstale"
+          $gitToken = "${{ secrets.WINGET_PAT }}"
+
+          $github = Invoke-RestMethod -uri "https://api.github.com/repos/danstis/rmstale/releases"
+
+          $targetRelease = $github | Where-Object {-not $_.draft -and -not $_.prerelease} | Select -First 1
+          $installerAmd64Url = $targetRelease | Select -ExpandProperty assets -First 1 | Where-Object {$_.name -match 'rmstale_.*_windows_amd64.zip'} | Select -ExpandProperty browser_download_url
+          $installerArm64Url = $targetRelease | Select -ExpandProperty assets -First 1 | Where-Object {$_.name -match 'rmstale_.*_windows_arm64.zip'} | Select -ExpandProperty browser_download_url
+          $installerX86Url = $targetRelease | Select -ExpandProperty assets -First 1 | Where-Object {$_.name -match 'rmstale_.*_windows_386.zip'} | Select -ExpandProperty browser_download_url
+          $ver = $targetRelease.tag_name.Trim("v")
+
+          if (-not $installerAmd64Url -or -not $installerArm64Url -or -not $installerX86Url -or -not $ver) {
+            Write-Error "One or more installer URLs are empty."
+          }
+
+          # getting latest wingetcreate file
+          iwr https://aka.ms/wingetcreate/latest -OutFile wingetcreate.exe
+          try {
+            .\wingetcreate.exe update $wingetPackage --submit --version $ver --urls $installerAmd64Url $installerArm64Url $installerX86Url --token $gitToken
+          } catch {
+            Write-Error "Failed to submit the winget package: $_"
+          }
