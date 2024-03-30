@@ -41,15 +41,17 @@ jobs:
     needs: tag
     if: ${{ needs.tag.outputs.prerelease == '' }}
     steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Check if commit is tagged
+        run: git describe --tags --exact-match
       - name: Set up Go 1.x
         uses: actions/setup-go@v5
         with:
           go-version: ^1.17
         id: go
-      - name: Check out code
-        uses: actions/checkout@v4
-      - name: Run tests
-        run: go test -v -coverprofile=coverage.out -covermode=count -json ./... > test-report.out
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v5.0.0
         with:
