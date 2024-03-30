@@ -13,6 +13,7 @@ jobs:
     outputs:
       version: ${{ steps.gitversion.outputs.FullSemVer }}
       prerelease: ${{ steps.gitversion.outputs.PreReleaseTagWithDash }}
+      nuget: ${{ steps.gitversion.outputs.NuGetVersionV2 }}
     steps:
       - name: Check out code
         uses: actions/checkout@v4
@@ -61,6 +62,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Replace version in NuSpec file
         uses: cschleiden/replace-tokens@v1
+        env:
+          GitVersion_NuGetVersionV2: ${{ needs.tag.outputs.nuget }}
         with:
           files: '["rmstale.nuspec"]'
       - name: Create directory for chocolaty package
