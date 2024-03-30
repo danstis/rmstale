@@ -9,10 +9,10 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/google/logger"
-	prompt "github.com/segmentio/go-prompt"
 )
 
 // AppVersion controls the application version number
@@ -70,15 +70,13 @@ func main() {
 	}
 
 	if age == 0 {
-		flag.PrintDefaults()
+		flag.Usage()
 		return
 	}
 
-	if !confirm {
-		if ok := prompt.Confirm("WARNING: Will remove files and folders recursively below '%v'%s older than %v days. Continue?", filepath.FromSlash(folder), extMsg, age); !ok {
-			logger.Warning("Operation not confirmed, exiting.")
-			return
-		}
+	if !prompt("WARNING: Will remove files and folders recursively below '%v'%s older than %v days.", filepath.FromSlash(folder), extMsg, age) {
+		logger.Warning("Operation not confirmed, exiting.")
+		return
 	}
 
 	logger.Infof("rmstale started against folder '%v'%s for contents older than %v days.", filepath.FromSlash(folder), extMsg, age)
@@ -91,6 +89,19 @@ func main() {
 // versionInfo returns the version information of the rmstale application
 func versionInfo() string {
 	return fmt.Sprintf("rmstale v%v", AppVersion)
+}
+
+// prompt prompts the user for confirmation before proceeding.
+// It returns true if the user confirms, false otherwise.
+func prompt(format string, a ...interface{}) bool {
+	fmt.Printf(format+" Continue? (y/n) ", a...)
+	var response string
+	_, err := fmt.Scanln(&response)
+	if err != nil {
+		logger.Errorf("Failed to read user input: %v", err)
+		return false
+	}
+	return strings.ToLower(response) == "y"
 }
 
 // procDir recursively processes a directory and removes stale files.

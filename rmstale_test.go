@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"io"
 	"log"
 	"os"
@@ -312,6 +313,68 @@ func (suite *RMStateSuite) TestVersionInfo() {
 	expected := "rmstale v0.0.0"
 	actual := versionInfo()
 	suite.Equal(expected, actual)
+}
+
+// TestPrompt tests the prompt function
+func (suite *RMStateSuite) TestPrompt() {
+	for _, t := range []struct {
+		name     string
+		format   string
+		a        []interface{}
+		response string
+		want     bool
+	}{
+		{
+			name:     "Test with 'y' response",
+			format:   "Test prompt (%s).",
+			a:        []interface{}{"y"},
+			response: "y\n",
+			want:     true,
+		},
+		{
+			name:     "Test with 'y' response and nil args",
+			format:   "Test prompt (%s).",
+			a:        nil,
+			response: "y\n",
+			want:     true,
+		},
+		{
+			name:     "Test with 'y' response and multiple args",
+			format:   "Test prompt (%s).",
+			a:        []interface{}{"y", "z"},
+			response: "y\n",
+			want:     true,
+		},
+		{
+			name:     "Test with 'n' response",
+			format:   "Test prompt (%s).",
+			a:        []interface{}{"n"},
+			response: "n\n",
+			want:     false,
+		},
+		{
+			name:     "Test with invalid response",
+			format:   "Test prompt (%s).",
+			a:        []interface{}{"invalid"},
+			response: "invalid\n",
+			want:     false,
+		},
+	} {
+		suite.Run(t.name, func() {
+			// Redirect standard input for testing
+			oldStdin := os.Stdin
+			defer func() { os.Stdin = oldStdin }()
+			r, w, _ := os.Pipe()
+			os.Stdin = r
+			go func() {
+				fmt.Fprint(w, t.response)
+				w.Close()
+			}()
+
+			got := prompt(t.format, t.a...)
+			suite.Equal(t.want, got)
+		})
+	}
 }
 
 // In order for 'go test' to run this suite, we need to create
