@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"github.com/google/logger"
-	prompt "github.com/segmentio/go-prompt"
 )
 
 // AppVersion controls the application version number
@@ -70,12 +69,19 @@ func main() {
 	}
 
 	if age == 0 {
-		flag.PrintDefaults()
+		flag.Usage()
 		return
 	}
 
 	if !confirm {
-		if ok := prompt.Confirm("WARNING: Will remove files and folders recursively below '%v'%s older than %v days. Continue?", filepath.FromSlash(folder), extMsg, age); !ok {
+		fmt.Printf("WARNING: Will remove files and folders recursively below '%v'%s older than %v days. Continue? (y/n) ", filepath.FromSlash(folder), extMsg, age)
+		var response string
+		_, err := fmt.Scanln(&response)
+		if err != nil {
+			logger.Errorf("Failed to read user input: %v", err)
+			return
+		}
+		if response != "y" && response != "Y" {
 			logger.Warning("Operation not confirmed, exiting.")
 			return
 		}
