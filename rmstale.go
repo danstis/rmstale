@@ -9,6 +9,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/google/logger"
@@ -73,18 +74,9 @@ func main() {
 		return
 	}
 
-	if !confirm {
-		fmt.Printf("WARNING: Will remove files and folders recursively below '%v'%s older than %v days. Continue? (y/n) ", filepath.FromSlash(folder), extMsg, age)
-		var response string
-		_, err := fmt.Scanln(&response)
-		if err != nil {
-			logger.Errorf("Failed to read user input: %v", err)
-			return
-		}
-		if response != "y" && response != "Y" {
-			logger.Warning("Operation not confirmed, exiting.")
-			return
-		}
+	if !prompt("WARNING: Will remove files and folders recursively below '%v'%s older than %v days.", filepath.FromSlash(folder), extMsg, age) {
+		logger.Warning("Operation not confirmed, exiting.")
+		return
 	}
 
 	logger.Infof("rmstale started against folder '%v'%s for contents older than %v days.", filepath.FromSlash(folder), extMsg, age)
@@ -97,6 +89,19 @@ func main() {
 // versionInfo returns the version information of the rmstale application
 func versionInfo() string {
 	return fmt.Sprintf("rmstale v%v", AppVersion)
+}
+
+// prompt prompts the user for confirmation before proceeding.
+// It returns true if the user confirms, false otherwise.
+func prompt(format string, a ...interface{}) bool {
+	fmt.Printf(format+" Continue? (y/n) ", a...)
+	var response string
+	_, err := fmt.Scanln(&response)
+	if err != nil {
+		logger.Errorf("Failed to read user input: %v", err)
+		os.Exit(1)
+	}
+	return strings.ToLower(response) == "y"
 }
 
 // procDir recursively processes a directory and removes stale files.
