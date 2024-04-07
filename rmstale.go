@@ -36,6 +36,7 @@ func main() {
 		ext         string
 		showVersion bool
 		extMsg      string
+		dryRun      bool
 	)
 	flag.StringVar(&folder, "p", os.TempDir(), "Path to check for stale files.")
 	flag.StringVar(&folder, "path", os.TempDir(), "Path to check for stale files.")
@@ -47,6 +48,8 @@ func main() {
 	flag.StringVar(&ext, "extension", "", "Filter files by extension.")
 	flag.BoolVar(&showVersion, "v", false, "Display version information.")
 	flag.BoolVar(&showVersion, "version", false, "Display version information.")
+	flag.BoolVar(&dryRun, "d", false, "Dry run mode, no files will be removed.")
+	flag.BoolVar(&dryRun, "dry-run", false, "Dry run mode, no files will be removed.")
 
 	// Parse flags
 	flag.Parse()
@@ -81,7 +84,7 @@ func main() {
 
 	logger.Infof("rmstale started against folder '%v'%s for contents older than %v days.", filepath.FromSlash(folder), extMsg, age)
 
-	if err := procDir(folder, folder, age, ext); err != nil {
+	if err := procDir(folder, folder, age, ext, dryRun); err != nil {
 		logger.Errorf("Something went wrong: %v", err)
 	}
 }
@@ -108,7 +111,7 @@ func prompt(format string, a ...interface{}) bool {
 // It takes the file path (fp) of the directory to process, the root folder (rootFolder) for reference,
 // the age (age) in days to determine staleness, and the file extension (ext) to filter files.
 // It returns an error if any operation fails.
-func procDir(fp, rootFolder string, age int, ext string) error {
+func procDir(fp, rootFolder string, age int, ext string, dryRun bool) error {
 	// get the fileInfo for the directory
 	di, err := os.Stat(fp)
 	if err != nil {
@@ -131,12 +134,12 @@ func procDir(fp, rootFolder string, age int, ext string) error {
 
 	for _, item := range infos {
 		if item.IsDir() {
-			if err := procDir(path.Join(fp, item.Name()), rootFolder, age, ext); err != nil {
+			if err := procDir(path.Join(fp, item.Name()), rootFolder, age, ext, dryRun); err != nil {
 				return err
 			}
 		} else {
 			if isStale(item, age) && matchExt(item.Name(), ext) {
-				removeItem(path.Join(fp, item.Name()), rootFolder)
+				removeItem(path.Join(fp, item.Name()), rootFolder, dryRun)
 			}
 		}
 	}
@@ -146,7 +149,7 @@ func procDir(fp, rootFolder string, age int, ext string) error {
 		return err
 	}
 	if empty && isStale(di, age) && ext == "" {
-		removeItem(fp, rootFolder)
+		removeItem(fp, rootFolder, dryRun)
 	}
 
 	return nil
@@ -175,9 +178,13 @@ func isStale(fi os.FileInfo, age int) bool {
 }
 
 // removeItem removes an item from the filesystem.
-func removeItem(fp, rootFolder string) {
+func removeItem(fp, rootFolder string, dryRun bool) {
 	if fp == rootFolder {
 		logger.Infof("Not removing folder '%v' as it is the root folder...\n", filepath.FromSlash(fp))
+		return
+	}
+	if dryRun {
+		logger.Infof("Dry run: '%v' would be removed...", filepath.FromSlash(fp))
 		return
 	}
 	logger.Infof("Removing '%v'...", filepath.FromSlash(fp))
