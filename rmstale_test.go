@@ -142,35 +142,40 @@ func (suite *RMStateSuite) TestFileRemoval() {
 		name      string
 		filename  string
 		directory string
+		dryRun    bool
 		want      bool
 	}{
 		{
 			name:      "Test with a file",
 			filename:  suite.oldFile1.Name(),
 			directory: suite.rootDir,
+			dryRun:    false,
 			want:      false,
 		},
 		{
 			name:      "Test with an empty folder",
 			filename:  suite.oldEmptySubdir,
 			directory: suite.rootDir,
+			dryRun:    false,
 			want:      false,
 		},
 		{
 			name:      "Test with a non-empty folder",
 			filename:  suite.oldSubdir1,
 			directory: suite.rootDir,
+			dryRun:    false,
 			want:      true,
 		},
 		{
 			name:      "Test when given the root folder",
 			filename:  suite.rootDir,
 			directory: suite.rootDir,
+			dryRun:    false,
 			want:      true,
 		},
 	} {
 		suite.Run(t.name, func() {
-			removeItem(t.filename, t.directory)
+			removeItem(t.filename, t.directory, t.dryRun)
 			got := exists(t.filename)
 			suite.Equal(t.want, got)
 		})
@@ -226,6 +231,7 @@ func (suite *RMStateSuite) TestProcDirErrors() {
 		path      string
 		directory string
 		ext       string
+		dryRun    bool
 		wantErr   bool
 	}{
 		{
@@ -233,6 +239,7 @@ func (suite *RMStateSuite) TestProcDirErrors() {
 			path:      "badFile",
 			directory: suite.rootDir,
 			ext:       "",
+			dryRun:    false,
 			wantErr:   true,
 		},
 		{
@@ -240,11 +247,12 @@ func (suite *RMStateSuite) TestProcDirErrors() {
 			path:      suite.oldFile1.Name(),
 			directory: suite.oldFile1.Name(),
 			ext:       "",
+			dryRun:    false,
 			wantErr:   true,
 		},
 	} {
 		suite.Run(t.name, func() {
-			err := procDir(t.path, t.directory, suite.age, t.ext)
+			err := procDir(t.path, t.directory, suite.age, t.ext, t.dryRun)
 			suite.Equal(t.wantErr, (err != nil))
 		})
 	}
@@ -252,7 +260,7 @@ func (suite *RMStateSuite) TestProcDirErrors() {
 
 // TestDirectoryProcessing tests the running the entire process over a directory
 func (suite *RMStateSuite) TestDirectoryProcessing() {
-	err := procDir(suite.rootDir, suite.rootDir, suite.age, "")
+	err := procDir(suite.rootDir, suite.rootDir, suite.age, "", false)
 	// Ensure that err == nil
 	suite.Nil(err)
 
@@ -282,13 +290,41 @@ func (suite *RMStateSuite) TestDirectoryProcessing() {
 
 // TestFilteredDirectoryProcessing tests the running the entire process over a directory
 func (suite *RMStateSuite) TestFilteredDirectoryProcessing() {
-	err := procDir(suite.rootDir, suite.rootDir, suite.age, "yes")
+	err := procDir(suite.rootDir, suite.rootDir, suite.age, "yes", false)
 	// Ensure that err == nil
 	suite.Nil(err)
 
 	// Check that all of the old files matching the extension are removed
 	suite.False(exists(suite.oldFile3yes.Name()))
 	suite.False(exists(suite.oldFile4yes.Name()))
+
+	// Check that all of the old files not matching the extension are retained
+	suite.True(exists(suite.oldFile3no.Name()))
+	suite.True(exists(suite.oldFile4no.Name()))
+
+	// Check that the new files are retained
+	suite.True(exists(suite.recentFile1.Name()))
+	suite.True(exists(suite.recentFile2no.Name()))
+	suite.True(exists(suite.recentFile2yes.Name()))
+	suite.True(exists(suite.recentFile3.Name()))
+
+	// Check all directories are retained
+	suite.True(exists(suite.recentSubdir1))
+	suite.True(exists(suite.oldSubdir1))
+	suite.True(exists(suite.oldSubdir2))
+	suite.True(exists(suite.oldSubdir3))
+	suite.True(exists(suite.oldEmptySubdir))
+}
+
+// TestDryRunOption tests the dry run option
+func (suite *RMStateSuite) TestDryRunOption() {
+	err := procDir(suite.rootDir, suite.rootDir, suite.age, "yes", true)
+	// Ensure that err == nil
+	suite.Nil(err)
+
+	// Check that all of the old files are retained
+	suite.True(exists(suite.oldFile3yes.Name()))
+	suite.True(exists(suite.oldFile4yes.Name()))
 
 	// Check that all of the old files not matching the extension are retained
 	suite.True(exists(suite.oldFile3no.Name()))
