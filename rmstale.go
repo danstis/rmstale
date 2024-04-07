@@ -184,7 +184,7 @@ func removeItem(fp, rootFolder string, dryRun bool) {
 		return
 	}
 	if dryRun {
-		logger.Infof("Dry run: '%v' would be removed...", filepath.FromSlash(fp))
+		logger.Infof("[DRY RUN] '%v' would be removed...", filepath.FromSlash(fp))
 		return
 	}
 	logger.Infof("Removing '%v'...", filepath.FromSlash(fp))
