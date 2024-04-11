@@ -20,10 +20,11 @@ var AppVersion = "0.0.0"
 
 const usage = `Usage of rmstale:
   -a, --age 		Period in days before an item is considered stale.
-  -p, --path		Path to a folder to process.
-  -y, --confirm		Allows for processing without confirmation prompt, useful for scheduling.
-  -v, --version		Displays the version of rmstale that is currently running.
+  -d, --dry-run		Runs the process in dry-run mode, no files will be removed.
   -e, --extension	Filter files for a defined file extension.
+  -p, --path		Path to a folder to process.
+  -v, --version		Displays the version of rmstale that is currently running.
+  -y, --confirm		Allows for processing without confirmation prompt, useful for scheduling.
 `
 
 func main() {
