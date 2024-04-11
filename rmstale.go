@@ -78,11 +78,9 @@ func main() {
 		return
 	}
 
-	if !confirm && !dryRun {
-		if !prompt("WARNING: Will remove files and folders recursively below '%v'%s older than %v days.", filepath.FromSlash(folder), extMsg, age) {
-			logger.Warning("Operation not confirmed, exiting.")
-			return
-		}
+	if !confirm && !dryRun && !prompt("WARNING: Will remove files and folders recursively below '%v'%s older than %v days.", filepath.FromSlash(folder), extMsg, age) {
+		logger.Warning("Operation not confirmed, exiting.")
+		return
 	}
 
 	logger.Infof("rmstale started against folder '%v'%s for contents older than %v days.", filepath.FromSlash(folder), extMsg, age)
