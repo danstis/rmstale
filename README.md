@@ -19,10 +19,14 @@ Some examples for use:
 
 `choco install rmstale`
 
+### Install with Winget
+
+`winget install danstis.rmstale`
+
 ### Install rmstale manually
 
 1. From the [GitHub releases page](https://github.com/danstis/rmstale/releases) download the latest binary for your operating system.
-1. Place the downloaded file into your desired location.
+2. Place the downloaded file into your desired location.
 
 ## Usage instructions
 
