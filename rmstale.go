@@ -78,7 +78,7 @@ func main() {
 		return
 	}
 
-	if !prompt("WARNING: Will remove files and folders recursively below '%v'%s older than %v days.", filepath.FromSlash(folder), extMsg, age) {
+	if !confirm && !dryRun && !prompt("WARNING: Will remove files and folders recursively below '%v'%s older than %v days.", filepath.FromSlash(folder), extMsg, age) {
 		logger.Warning("Operation not confirmed, exiting.")
 		return
 	}
