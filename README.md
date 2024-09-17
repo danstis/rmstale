@@ -23,6 +23,16 @@ Some examples for use:
 
 `winget install danstis.rmstale`
 
+### Install on Linux
+
+Visit the releases page to find the [latest release](https://github.com/danstis/rmstale/releases/latest) version.
+
+```bash
+curl -L -o /tmp/rmstale.tar.gz "https://github.com/danstis/rmstale/releases/download/v1.15.2/rmstale_1.15.2_linux_amd64.tar.gz"
+sudo tar -xzf /tmp/rmstale.tar.gz -C /usr/bin rmstale
+rm /tmp/rmstale.tar.gz
+```
+
 ### Install rmstale manually
 
 1. From the [GitHub releases page](https://github.com/danstis/rmstale/releases) download the latest binary for your operating system.
