@@ -395,6 +395,13 @@ func (suite *RMStateSuite) TestPrompt() {
 			response: "invalid\n",
 			want:     false,
 		},
+		{
+			name:     "Test with error response",
+			format:   "Test prompt (%s).",
+			a:        []interface{}{"error"},
+			response: "",
+			want:     false,
+		},
 	} {
 		suite.Run(t.name, func() {
 			// Redirect standard input for testing
