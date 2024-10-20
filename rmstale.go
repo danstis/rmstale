@@ -20,8 +20,8 @@ var AppVersion = "0.0.0"
 
 const usage = `Usage of rmstale:
   -a, --age 		Period in days before an item is considered stale.
-  -d, --dry-run		Runs the process in dry-run mode, no files will be removed.
-  -e, --extension	Filter files for a defined file extension.
+  -d, --dry-run		Runs the process in dry-run mode. No files will be removed, but the tool will log the files that would be deleted.
+  -e, --extension	Filter files for a defined file extension. This flag only applies to files, not directories.
   -p, --path		Path to a folder to process.
   -v, --version		Displays the version of rmstale that is currently running.
   -y, --confirm		Allows for processing without confirmation prompt, useful for scheduling.
