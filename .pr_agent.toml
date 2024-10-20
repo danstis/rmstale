@@ -1,0 +1,20 @@
+[config]
+enable_custom_labels = true
+
+[custom_labels."bug 🐛"]
+description = """Fixes a bug in the code"""
+[custom_labels."build 🛠️"]
+description = """Items related to continuous integration or continuous deployment"""
+[custom_labels."dependencies ⬆️"]
+description = """Modifications of the project dependencies"""
+[custom_labels."enhancement ✨"]
+description = """Adds new features or modifies existing ones"""
+[custom_labels."github actions 🛠️"]
+description = """Adds or modifies GitHub Actions"""
+[custom_labels."documentation 📑"]
+description = """Adds or modifies documentation"""
+[custom_labels."tests 🧪"]
+description = """Adds or modifies tests"""
+
+[ignore]
+glob = ['go.mod', 'go.sum']
