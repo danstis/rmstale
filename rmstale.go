@@ -113,24 +113,14 @@ func prompt(format string, a ...interface{}) bool {
 // the age (age) in days to determine staleness, and the file extension (ext) to filter files.
 // It returns an error if any operation fails.
 func procDir(fp, rootFolder string, age int, ext string, dryRun bool) error {
-	// get the fileInfo for the directory
 	di, err := os.Stat(fp)
 	if err != nil {
 		return err
 	}
 
-	// get the directory contents
-	contents, err := os.ReadDir(fp)
+	infos, err := getDirectoryContents(fp)
 	if err != nil {
 		return err
-	}
-	infos := make([]fs.FileInfo, 0, len(contents))
-	for _, entry := range contents {
-		info, err := entry.Info()
-		if err != nil {
-			return err
-		}
-		infos = append(infos, info)
 	}
 
 	for _, item := range infos {
@@ -139,12 +129,39 @@ func procDir(fp, rootFolder string, age int, ext string, dryRun bool) error {
 				return err
 			}
 		} else {
-			if isStale(item, age) && matchExt(item.Name(), ext) {
-				removeItem(path.Join(fp, item.Name()), rootFolder, dryRun)
-			}
+			processFile(item, fp, rootFolder, age, ext, dryRun)
 		}
 	}
 
+	return handleEmptyDirectory(fp, di, age, ext, rootFolder, dryRun)
+}
+
+// getDirectoryContents retrieves the contents of a directory.
+func getDirectoryContents(fp string) ([]fs.FileInfo, error) {
+	contents, err := os.ReadDir(fp)
+	if err != nil {
+		return nil, err
+	}
+	infos := make([]fs.FileInfo, 0, len(contents))
+	for _, entry := range contents {
+		info, err := entry.Info()
+		if err != nil {
+			return nil, err
+		}
+		infos = append(infos, info)
+	}
+	return infos, nil
+}
+
+// processFile processes a file to determine if it should be removed.
+func processFile(item fs.FileInfo, fp, rootFolder string, age int, ext string, dryRun bool) {
+	if isStale(item, age) && matchExt(item.Name(), ext) {
+		removeItem(path.Join(fp, item.Name()), rootFolder, dryRun)
+	}
+}
+
+// handleEmptyDirectory handles the removal of an empty directory if it is stale.
+func handleEmptyDirectory(fp string, di fs.FileInfo, age int, ext, rootFolder string, dryRun bool) error {
 	empty, err := isEmpty(fp)
 	if err != nil {
 		return err
@@ -152,7 +169,6 @@ func procDir(fp, rootFolder string, age int, ext string, dryRun bool) error {
 	if empty && isStale(di, age) && ext == "" {
 		removeItem(fp, rootFolder, dryRun)
 	}
-
 	return nil
 }
 
