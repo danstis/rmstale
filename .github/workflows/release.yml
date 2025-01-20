@@ -20,12 +20,12 @@ jobs:
         with:
           fetch-depth: 0
       - name: Install GitVersion
-        uses: gittools/actions/gitversion/setup@v3.0.0
+        uses: gittools/actions/gitversion/setup@v3.1.3
         with:
           versionSpec: "5.x"
       - name: Version with GitVersion # https://github.com/marketplace/actions/use-actions
         id: gitversion
-        uses: gittools/actions/gitversion/execute@v3.0.0
+        uses: gittools/actions/gitversion/execute@v3.1.3
 
       - name: Bump version and push tag
         id: tag_version
