@@ -50,14 +50,14 @@ rm rmstale.tar.gz
 
 ### Command line flags
 
-| Flag            | Description                                                                                                        |
-| --------------- | ------------------------------------------------------------------------------------------------------------------ |
-| -a, --age       | Period in days before an item is considered stale.                                                                 |
-| -d, --dry-run   | Runs the process in dry-run mode. No files will be removed, but the tool will log the files that would be deleted. |
-| -e, --extension | Filter files for a defined file extension. This flag only applies to files, not directories.                       |
-| -p, --path      | Path to a folder to process.                                                                                       |
-| -v, --version   | Displays the version of rmstale that is currently running.                                                         |
-| -y, --confirm   | Allows for processing without confirmation prompt, useful for scheduling.                                          |
+| Flag            | Description                                                                                                                    | Default |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------ | ------- |
+| -a, --age       | Period in days before an item is considered stale.                                                                             | `0` |
+| -d, --dry-run   | Runs the process in dry-run mode. No files will be removed, but the tool will log the files that would be deleted.              | `false` |
+| -e, --extension | Filter files for a defined file extension. This flag only applies to files, not directories.                                   | *(empty)* |
+| -p, --path      | Path to a folder to process.                                                                                                    | system temp dir |
+| -v, --version   | Displays the version of rmstale that is currently running.                                                                     | `false` |
+| -y, --confirm   | Allows for processing without confirmation prompt, useful for scheduling.                                                      | `false` |
 
 ### Usage examples
 
