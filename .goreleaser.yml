@@ -20,7 +20,7 @@ builds:
 
 archives:
   - id: rmstale
-    format: tar.gz
+    formats: [tar.gz]
     name_template: >-
       {{ .ProjectName }}_{{ .Version }}_
       {{- title .Os }}_
@@ -30,7 +30,7 @@ archives:
     # Use format_overrides to change the format for specific GOOSs.
     format_overrides:
       - goos: windows
-        format: zip
+        formats: [zip]
 
 checksum:
   name_template: "checksums.txt"
