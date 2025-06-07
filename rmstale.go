@@ -175,12 +175,16 @@ func handleEmptyDirectory(fp string, di fs.FileInfo, age int, ext, rootFolder st
 // isEmpty checks if a directory is empty.
 // It returns true if the directory is empty, false otherwise.
 // An error is returned if there was a problem opening or reading the directory.
-func isEmpty(name string) (bool, error) {
+func isEmpty(name string) (empty bool, err error) {
 	f, err := os.Open(name)
 	if err != nil {
 		return false, err
 	}
-	defer f.Close()
+	defer func() {
+		if cerr := f.Close(); err == nil && cerr != nil {
+			err = cerr
+		}
+	}()
 
 	_, err = f.Readdirnames(1)
 	if err == io.EOF {
