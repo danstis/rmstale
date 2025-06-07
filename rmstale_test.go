@@ -502,7 +502,7 @@ func captureOutput(f func()) string {
 	return buf.String()
 }
 
-func TestMain_VersionFlag(t *testing.T) {
+func TestMainVersionFlag(t *testing.T) {
 	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
 	os.Args = []string{"rmstale", "-v"}
 	output := captureOutput(func() { main() })
@@ -511,7 +511,7 @@ func TestMain_VersionFlag(t *testing.T) {
 	}
 }
 
-func TestMain_NoFlagsShowsUsage(t *testing.T) {
+func TestMainNoFlagsShowsUsage(t *testing.T) {
 	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
 	os.Args = []string{"rmstale"}
 	output := captureOutput(func() { main() })
