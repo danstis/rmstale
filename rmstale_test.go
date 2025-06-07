@@ -98,7 +98,9 @@ func (suite *RMStateSuite) SetupTest() {
 
 // The TearDownTest method will be run after every test in the suite.
 func (suite *RMStateSuite) TearDownTest() {
-	os.RemoveAll(suite.rootDir)
+	if err := os.RemoveAll(suite.rootDir); err != nil {
+		suite.T().Fatal(err)
+	}
 }
 
 // TestAgeDetection tests the detection of stale files
@@ -409,10 +411,12 @@ func (suite *RMStateSuite) TestPrompt() {
 			defer func() { os.Stdin = oldStdin }()
 			r, w, _ := os.Pipe()
 			os.Stdin = r
-			go func() {
-				fmt.Fprint(w, t.response)
-				w.Close()
-			}()
+			if _, err := fmt.Fprint(w, t.response); err != nil {
+				suite.T().Fatal(err)
+			}
+			if err := w.Close(); err != nil {
+				suite.T().Fatal(err)
+			}
 
 			got := prompt(t.format, t.a...)
 			suite.Equal(t.want, got)
