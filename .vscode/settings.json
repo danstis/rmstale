@@ -2,5 +2,11 @@
 	"sonarlint.connectedMode.project": {
 		"connectionId": "danstis",
 		"projectKey": "danstis_rmstale"
-	}
+	},
+	"cSpell.words": [
+		"cerr",
+		"fakefile",
+		"Infof",
+		"rmstale"
+	]
 }
