@@ -87,24 +87,26 @@ jobs:
           $ErrorActionPreference = "Stop"
 
           $wingetPackage = "danstis.rmstale"
-          $gitToken = "${{ secrets.WINGET_PAT }}"
+          $env:WINGET_CREATE_GITHUB_TOKEN = "${{ secrets.WINGET_PAT }}"
 
           $github = Invoke-RestMethod -uri "https://api.github.com/repos/danstis/rmstale/releases"
 
           $targetRelease = $github | Where-Object {-not $_.draft -and -not $_.prerelease} | Select -First 1
-          $installerAmd64Url = $targetRelease | Select -ExpandProperty assets -First 1 | Where-Object {$_.name -match 'rmstale_.*_windows_x86_64.zip'} | Select -ExpandProperty browser_download_url
-          $installerArm64Url = $targetRelease | Select -ExpandProperty assets -First 1 | Where-Object {$_.name -match 'rmstale_.*_windows_arm64.zip'} | Select -ExpandProperty browser_download_url
-          $installerX86Url = $targetRelease | Select -ExpandProperty assets -First 1 | Where-Object {$_.name -match 'rmstale_.*_windows_i386.zip'} | Select -ExpandProperty browser_download_url
           $ver = $targetRelease.tag_name.Trim("v")
+
+          $assets = $targetRelease.assets
+          $installerAmd64Url = ($assets | Where-Object { $_.name -match 'rmstale_.*_windows_x86_64.zip' }).browser_download_url
+          $installerArm64Url = ($assets | Where-Object { $_.name -match 'rmstale_.*_windows_arm64.zip' }).browser_download_url
+          $installerX86Url = ($assets | Where-Object { $_.name -match 'rmstale_.*_windows_i386.zip' }).browser_download_url
 
           if (-not $installerAmd64Url -or -not $installerArm64Url -or -not $installerX86Url -or -not $ver) {
             Write-Error "One or more installer URLs are empty."
           }
 
           # getting latest wingetcreate file
-          iwr https://aka.ms/wingetcreate/latest -OutFile wingetcreate.exe
+          Invoke-WebRequest https://aka.ms/wingetcreate/latest -OutFile wingetcreate.exe
           try {
-            .\wingetcreate.exe update $wingetPackage --submit --version $ver --urls $installerAmd64Url $installerArm64Url $installerX86Url --token $gitToken
+            .\wingetcreate.exe update $wingetPackage --version $ver --urls $installerAmd64Url $installerArm64Url $installerX86Url --submit
           } catch {
             Write-Error "Failed to submit the winget package: $_"
           }
