@@ -12,13 +12,20 @@ import (
 // captureOutput captures stdout during function f execution
 func captureOutput(f func()) string {
 	old := os.Stdout
-	r, w, _ := os.Pipe()
+	r, w, err := os.Pipe()
+	if err != nil {
+		panic(err)
+	}
 	os.Stdout = w
 	f()
-	w.Close()
+	if err := w.Close(); err != nil {
+		panic(err)
+	}
 	os.Stdout = old
 	var buf bytes.Buffer
-	io.Copy(&buf, r)
+	if _, err := io.Copy(&buf, r); err != nil {
+		panic(err)
+	}
 	return buf.String()
 }
 
@@ -79,8 +86,14 @@ func TestGetDirectoryContents(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	tmp.Close()
-	defer os.Remove(tmp.Name())
+	if err := tmp.Close(); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		if err := os.Remove(tmp.Name()); err != nil {
+			t.Fatal(err)
+		}
+	})
 
 	infos, err := getDirectoryContents(dir)
 	if err != nil {
