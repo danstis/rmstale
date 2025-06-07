@@ -80,6 +80,7 @@ jobs:
   sync-repo:
     name: Sync winget-pkgs repo
     runs-on: ubuntu-latest
+    environment: winget
     steps:
       - run: gh repo sync danstis/winget-pkgs -b master
         env:
@@ -87,7 +88,7 @@ jobs:
   winget:
     name: Publish winget package
     runs-on: windows-latest
-    needs: release
+    needs: [release, sync-repo]
     environment: winget
     steps:
       - name: Submit danstis.rmstale package to WinGet Community Repository
