@@ -93,3 +93,12 @@ Want to contribute? Great:
 * Create a new branch for the feature that you want to contribute.
 * Develop your new feature as you see fit.
 * Once you have a working copy of your code, create a pull request against this project.
+
+### Release Process
+
+This project follows semantic versioning (SemVer) for releases. To create a new release:
+
+1. Ensure all changes are committed to the main branch via a pull request.
+2. Tag the commit with a version number following the format `v1.2.3` (where 1 is the major version, 2 is the minor version, and 3 is the patch version).
+3. Push the tag to the repository.
+4. The CI/CD pipeline will automatically build and publish the release.
