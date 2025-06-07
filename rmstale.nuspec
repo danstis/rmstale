@@ -19,7 +19,7 @@
     <releaseNotes>https://github.com/danstis/rmstale/releases</releaseNotes>
   </metadata>
   <files>
-    <file src="dist/rmstale_windows_386/rmstale.exe" target="bin" />
+    <file src="dist/rmstale_windows_386_sse2/rmstale.exe" target="bin" />
     <file src="LICENSE.txt" target="bin" />
     <file src="VERIFICATION.txt" target="bin" />
   </files>
