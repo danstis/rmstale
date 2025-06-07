@@ -92,9 +92,9 @@ jobs:
           $github = Invoke-RestMethod -uri "https://api.github.com/repos/danstis/rmstale/releases"
 
           $targetRelease = $github | Where-Object {-not $_.draft -and -not $_.prerelease} | Select -First 1
-          $installerAmd64Url = $targetRelease | Select -ExpandProperty assets -First 1 | Where-Object {$_.name -match 'rmstale_.*_windows_amd64.zip'} | Select -ExpandProperty browser_download_url
+          $installerAmd64Url = $targetRelease | Select -ExpandProperty assets -First 1 | Where-Object {$_.name -match 'rmstale_.*_windows_x86_64.zip'} | Select -ExpandProperty browser_download_url
           $installerArm64Url = $targetRelease | Select -ExpandProperty assets -First 1 | Where-Object {$_.name -match 'rmstale_.*_windows_arm64.zip'} | Select -ExpandProperty browser_download_url
-          $installerX86Url = $targetRelease | Select -ExpandProperty assets -First 1 | Where-Object {$_.name -match 'rmstale_.*_windows_386.zip'} | Select -ExpandProperty browser_download_url
+          $installerX86Url = $targetRelease | Select -ExpandProperty assets -First 1 | Where-Object {$_.name -match 'rmstale_.*_windows_i386.zip'} | Select -ExpandProperty browser_download_url
           $ver = $targetRelease.tag_name.Trim("v")
 
           if (-not $installerAmd64Url -or -not $installerArm64Url -or -not $installerX86Url -or -not $ver) {
