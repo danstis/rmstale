@@ -5,11 +5,10 @@
 [![codecov](https://codecov.io/gh/danstis/rmstale/branch/master/graph/badge.svg)](https://codecov.io/gh/danstis/rmstale)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=danstis_rmstale&metric=alert_status)](https://sonarcloud.io/dashboard?id=danstis_rmstale)
 
-rmstale is a tool to remove stale files recursively below a given directory.  
+rmstale is a tool to remove stale files recursively below a given directory.
 Files and folders older than a defined period are removed.
 A file is considered stale if it has not been modified in the last N days, where N is the value provided for the `--age` flag.
 This tool will also remove directories that are considered stale (older than the defined period) and are empty.
-
 
 Some examples for use:
 
@@ -50,14 +49,14 @@ rm rmstale.tar.gz
 
 ### Command line flags
 
-| Flag            | Description                                                                                                                    | Default |
-| --------------- | ------------------------------------------------------------------------------------------------------------------------------ | ------- |
-| -a, --age       | Period in days before an item is considered stale.                                                                             | `0` |
-| -d, --dry-run   | Runs the process in dry-run mode. No files will be removed, but the tool will log the files that would be deleted.              | `false` |
-| -e, --extension | Filter files for a defined file extension. This flag only applies to files, not directories.                                   | *(empty)* |
-| -p, --path      | Path to a folder to process.                                                                                                    | system temp dir |
-| -v, --version   | Displays the version of rmstale that is currently running.                                                                     | `false` |
-| -y, --confirm   | Allows for processing without confirmation prompt, useful for scheduling.                                                      | `false` |
+| Flag            | Description                                                                                                        | Default         |
+| --------------- | ------------------------------------------------------------------------------------------------------------------ | --------------- |
+| -a, --age       | Period in days before an item is considered stale. (REQUIRED)                                                      | *(required)*    |
+| -d, --dry-run   | Runs the process in dry-run mode. No files will be removed, but the tool will log the files that would be deleted. | `false`         |
+| -e, --extension | Filter files for a defined file extension. This flag only applies to files, not directories.                       | *(empty)*       |
+| -p, --path      | Path to a folder to process.                                                                                       | system temp dir |
+| -v, --version   | Displays the version of rmstale that is currently running.                                                         | `false`         |
+| -y, --confirm   | Allows for processing without confirmation prompt, useful for scheduling.                                          | `false`         |
 
 ### Usage examples
 
@@ -82,7 +81,7 @@ Any errors encountered during the deletion process (e.g., permission issues) wil
 
 ## GitHub project
 
-Feedback, Issues, Bugs and Contribution to this tool are welcome.  
+Feedback, Issues, Bugs and Contribution to this tool are welcome.
 For Bugs/Issues/Feature requests, please create an issue on the [GitHub issues page](https://github.com/danstis/rmstale/issues).
 
 Want to contribute? Great:
