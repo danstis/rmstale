@@ -37,7 +37,7 @@ jobs:
         uses: gittools/actions/gitversion/execute@v3.2.1
 
       - name: Run tests
-        run: go test -v -coverprofile=coverage.out -covermode=count -json ./... > test-report.out
+        run: go test -v ./... -coverprofile=coverage.out -covermode=count -json > test-report.out
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5.4.3
