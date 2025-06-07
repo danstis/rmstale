@@ -520,6 +520,16 @@ func TestMainNoFlagsShowsUsage(t *testing.T) {
 	}
 }
 
+func TestMainHelpShowsDefaults(t *testing.T) {
+	output := usage()
+	if !strings.Contains(output, os.TempDir()) {
+		t.Fatalf("expected default path in usage output, got %q", output)
+	}
+	if !strings.Contains(output, "(REQUIRED)") || !strings.Contains(output, "(default false)") {
+		t.Fatalf("expected default values in usage output, got %q", output)
+	}
+}
+
 func TestGetExt(t *testing.T) {
 	for _, tt := range []struct{ path, want string }{
 		{"file.txt", "txt"},

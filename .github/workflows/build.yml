@@ -39,7 +39,7 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v4
       - name: Run tests
-        run: go test -v -coverprofile=coverage.out -covermode=count -json ./... > test-report.out
+        run: go test -v ./... -coverprofile=coverage.out -covermode=count -json > test-report.out
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v6.3.0
         with:

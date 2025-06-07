@@ -18,17 +18,19 @@ import (
 // AppVersion controls the application version number
 var AppVersion = "0.0.0"
 
-const usage = `Usage of rmstale:
-  -a, --age 		Period in days before an item is considered stale.
-  -d, --dry-run		Runs the process in dry-run mode. No files will be removed, but the tool will log the files that would be deleted.
-  -e, --extension	Filter files for a defined file extension. This flag only applies to files, not directories.
-  -p, --path		Path to a folder to process.
-  -v, --version		Displays the version of rmstale that is currently running.
-  -y, --confirm		Allows for processing without confirmation prompt, useful for scheduling.
-`
+func usage() string {
+	return fmt.Sprintf(`Usage of rmstale:
+  -a, --age             Period in days before an item is considered stale. (REQUIRED)
+  -d, --dry-run         Runs the process in dry-run mode. No files will be removed, but the tool will log the files that would be deleted. (default %v)
+  -e, --extension       Filter files for a defined file extension. This flag only applies to files, not directories. (default %q)
+  -p, --path            Path to a folder to process. (default %s)
+  -v, --version         Displays the version of rmstale that is currently running. (default %v)
+  -y, --confirm         Allows for processing without confirmation prompt, useful for scheduling. (default %v)
+`, false, "", filepath.FromSlash(os.TempDir()), false, false)
+}
 
 func main() {
-	flag.Usage = func() { fmt.Print(usage) }
+	flag.Usage = func() { fmt.Print(usage()) }
 
 	var (
 		folder      string
