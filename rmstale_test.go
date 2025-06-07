@@ -525,7 +525,7 @@ func TestMainHelpShowsDefaults(t *testing.T) {
 	if !strings.Contains(output, os.TempDir()) {
 		t.Fatalf("expected default path in usage output, got %q", output)
 	}
-	if !strings.Contains(output, "(default 0)") || !strings.Contains(output, "(default false)") {
+	if !strings.Contains(output, "(REQUIRED)") || !strings.Contains(output, "(default false)") {
 		t.Fatalf("expected default values in usage output, got %q", output)
 	}
 }
