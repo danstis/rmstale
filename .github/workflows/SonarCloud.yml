@@ -45,7 +45,7 @@ jobs:
           file: ./coverage.out # optional
 
       - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@master # https://github.com/marketplace/actions/sonarcloud-scan
+        uses: SonarSource/sonarqube-scan-action@v5.2.0 # https://github.com/marketplace/actions/sonarcloud-scan
         if: ${{ github.actor != 'dependabot[bot]' }}
         with:
           args: >
