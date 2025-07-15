@@ -4,7 +4,7 @@ This repository contains `rmstale`, a small Go command line tool that removes st
 
 ## Coding Style
 
-- Use Go 1.19 or newer.
+- Use Go 1.24 or newer.
 - Format all Go code with `gofmt -w` before committing.
 - Check code with `golangci-lint` to ensure code quality.
 - Stick to the standard Go style and keep the code cross-platform.
