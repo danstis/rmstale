@@ -2,6 +2,7 @@
 
 [![Build](https://github.com/danstis/rmstale/workflows/Build/badge.svg)](https://github.com/danstis/rmstale/actions?query=workflow%3ABuild)
 [![Chocolatey](https://img.shields.io/chocolatey/v/rmstale.svg)](https://chocolatey.org/packages/rmstale)
+[![Winget Version](https://img.shields.io/winget/v/danstis.rmstale)](https://winstall.app/apps/danstis.rmstale)
 [![codecov](https://codecov.io/gh/danstis/rmstale/branch/master/graph/badge.svg)](https://codecov.io/gh/danstis/rmstale)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=danstis_rmstale&metric=alert_status)](https://sonarcloud.io/dashboard?id=danstis_rmstale)
 
