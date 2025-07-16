@@ -1,3 +1,6 @@
+# Available options: https://github.com/qodo-ai/pr-agent/blob/main/pr_agent/settings/configuration.toml/
+# Use this page: 'https://qodo-merge-docs.qodo.ai/ai_search/' to ask questions about the configuration options.
+
 [config]
 enable_custom_labels = true
 
@@ -20,4 +23,5 @@ description = """Adds or modifies tests"""
 glob = ['go.mod', 'go.sum']
 
 [pr_description]
-enable_help_comment=true
+enable_help_comment = true
+enable_help_text = true
