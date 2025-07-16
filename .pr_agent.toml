@@ -2,6 +2,10 @@
 # Use this page: 'https://qodo-merge-docs.qodo.ai/ai_search/' to ask questions about the configuration options.
 
 [config]
+model="o4-mini"
+fallback_models=["gpt-4.1"]
+model_reasoning="o4-mini"
+model_weak="gpt-4o"
 enable_custom_labels = true
 
 [custom_labels."bug 🐛"]
