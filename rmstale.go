@@ -1,3 +1,4 @@
+// Package main implements rmstale, a tool for removing stale files and directories.
 package main
 
 import (
