@@ -46,7 +46,7 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
 
       - name: SonarCloud Scan
-        uses: SonarSource/sonarqube-scan-action@v5.2.0 # https://github.com/marketplace/actions/sonarcloud-scan
+        uses: SonarSource/sonarqube-scan-action@v5.2.0 # https://github.com/marketplace/actions/sonarqube-scan
         if: ${{ github.actor != 'dependabot[bot]' }}
         with:
           args: >
