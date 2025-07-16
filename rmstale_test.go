@@ -600,19 +600,34 @@ func TestMainWithExtensionMessage(t *testing.T) {
 	tmpDir := tempDirectory(t, "test", os.TempDir())
 	defer os.RemoveAll(tmpDir)
 
+	// Create files with different extensions
+	txtFile := tempFile(t, "test.txt", tmpDir)
+	docFile := tempFile(t, "test.doc", tmpDir)
+	setAge(txtFile.Name(), 35) // Make them old
+	setAge(docFile.Name(), 35)
+
 	os.Args = []string{"rmstale", "-a", "30", "-e", "txt", "-y", "-d", "-p", tmpDir}
 
-	// Just run main - the test passes if no panic occurs and extension logic is exercised
+	// Run main and verify extension filtering works
 	main()
+
+	// Both files should still exist since we're in dry-run mode
+	// But the extension logic should have been exercised
+	if !exists(txtFile.Name()) || !exists(docFile.Name()) {
+		t.Fatal("files should still exist in dry-run mode")
+	}
 }
 
 // TestMainWithProcDirError tests main function when procDir returns an error
-func TestMainWithProcDirError(t *testing.T) {
+func TestMainWithProcDirError(_ *testing.T) {
 	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
 	os.Args = []string{"rmstale", "-a", "30", "-p", "/nonexistent/path", "-y"}
 
-	// Just run main - the test passes if no panic occurs and error handling is exercised
+	// Just verify main doesn't panic when given invalid path
+	// The error handling is internal and logged, not returned
 	main()
+
+	// Test passes if no panic occurs - the error is handled internally
 }
 
 // TestIsEmptyWithFile tests isEmpty function with a file instead of directory
@@ -673,6 +688,10 @@ func TestMainWithConfirmationDenied(t *testing.T) {
 	tmpDir := tempDirectory(t, "test", os.TempDir())
 	defer os.RemoveAll(tmpDir)
 
+	// Create an old file that would be removed if confirmation was accepted
+	oldFile := tempFile(t, "oldfile", tmpDir)
+	setAge(oldFile.Name(), 35) // Make it older than 30 days
+
 	os.Args = []string{"rmstale", "-a", "30", "-p", tmpDir}
 
 	// Redirect stdin to simulate user input "n"
@@ -685,8 +704,17 @@ func TestMainWithConfirmationDenied(t *testing.T) {
 		w.Write([]byte("n\n"))
 	}()
 
-	// Just run main - the test passes if no panic occurs and confirmation logic is exercised
-	main()
+	output := captureOutput(func() { main() })
+
+	// Should contain confirmation prompt and file should still exist since user denied
+	if !strings.Contains(output, "Continue") && !strings.Contains(output, "proceed") {
+		t.Fatalf("expected confirmation prompt in output, got %q", output)
+	}
+
+	// File should still exist since user denied confirmation
+	if !exists(oldFile.Name()) {
+		t.Fatal("file should still exist after denying confirmation")
+	}
 }
 
 // TestIsEmptyWithDeferError tests the defer error handling in isEmpty
