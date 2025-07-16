@@ -1,3 +1,4 @@
+// Package main implements rmstale, a tool for removing stale files and directories.
 package main
 
 import (
@@ -99,7 +100,7 @@ func versionInfo() string {
 
 // prompt prompts the user for confirmation before proceeding.
 // It returns true if the user confirms, false otherwise.
-func prompt(format string, a ...interface{}) bool {
+func prompt(format string, a ...any) bool {
 	fmt.Printf(format+" Continue? (y/n) ", a...)
 	var response string
 	_, err := fmt.Scanln(&response)

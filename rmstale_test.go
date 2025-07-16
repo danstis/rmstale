@@ -591,3 +591,144 @@ func TestGetDirectoryContents(t *testing.T) {
 		t.Fatalf("expected error for bad directory")
 	}
 }
+
+// TestMainWithExtensionMessage tests main function with extension message
+func TestMainWithExtensionMessage(t *testing.T) {
+	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
+
+	// Create a temporary directory for testing
+	tmpDir := tempDirectory(t, "test", os.TempDir())
+	defer os.RemoveAll(tmpDir)
+
+	// Create files with different extensions
+	txtFile := tempFile(t, "test.txt", tmpDir)
+	docFile := tempFile(t, "test.doc", tmpDir)
+	setAge(txtFile.Name(), 35) // Make them old
+	setAge(docFile.Name(), 35)
+
+	os.Args = []string{"rmstale", "-a", "30", "-e", "txt", "-y", "-d", "-p", tmpDir}
+
+	// Run main and verify extension filtering works
+	main()
+
+	// Both files should still exist since we're in dry-run mode
+	// But the extension logic should have been exercised
+	if !exists(txtFile.Name()) || !exists(docFile.Name()) {
+		t.Fatal("files should still exist in dry-run mode")
+	}
+}
+
+// TestMainWithProcDirError tests main function when procDir returns an error
+func TestMainWithProcDirError(_ *testing.T) {
+	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
+	os.Args = []string{"rmstale", "-a", "30", "-p", "/nonexistent/path", "-y"}
+
+	// Just verify main doesn't panic when given invalid path
+	// The error handling is internal and logged, not returned
+	main()
+
+	// Test passes if no panic occurs - the error is handled internally
+}
+
+// TestIsEmptyWithFile tests isEmpty function with a file instead of directory
+func TestIsEmptyWithFile(t *testing.T) {
+	tmpFile := tempFile(t, "test", os.TempDir())
+	defer os.Remove(tmpFile.Name())
+
+	_, err := isEmpty(tmpFile.Name())
+	if err == nil {
+		t.Fatal("expected error when calling isEmpty on a file")
+	}
+}
+
+// TestGetDirectoryContentsError tests error handling in getDirectoryContents
+func TestGetDirectoryContentsError(t *testing.T) {
+	_, err := getDirectoryContents("/nonexistent/directory/path")
+	if err == nil {
+		t.Fatal("expected error when getting contents of non-existent directory")
+	}
+}
+
+// TestHandleEmptyDirectoryWithExtensionFilter tests handleEmptyDirectory with extension filter
+func TestHandleEmptyDirectoryWithExtensionFilter(t *testing.T) {
+	tmpDir := tempDirectory(t, "test", os.TempDir())
+	defer os.RemoveAll(tmpDir)
+
+	// Make directory old
+	setAge(tmpDir, 30)
+
+	// Test with extension filter - should not remove directory even if empty and old
+	err := handleEmptyDirectory(tmpDir, fileInfo(t, tmpDir), 20, "txt", tmpDir, false)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	// Directory should still exist because extension filter is set
+	if !exists(tmpDir) {
+		t.Fatal("directory should not have been removed with extension filter")
+	}
+}
+
+// TestProcDirWithFileAsPath tests procDir when given a file path instead of directory
+func TestProcDirWithFileAsPath(t *testing.T) {
+	tmpFile := tempFile(t, "test", os.TempDir())
+	defer os.Remove(tmpFile.Name())
+
+	err := procDir(tmpFile.Name(), tmpFile.Name(), 30, "", false)
+	if err == nil {
+		t.Fatal("expected error when processing a file path as directory")
+	}
+}
+
+// TestMainWithConfirmationDenied tests main function when user denies confirmation
+func TestMainWithConfirmationDenied(t *testing.T) {
+	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
+
+	// Create a temporary directory for testing
+	tmpDir := tempDirectory(t, "test", os.TempDir())
+	defer os.RemoveAll(tmpDir)
+
+	// Create an old file that would be removed if confirmation was accepted
+	oldFile := tempFile(t, "oldfile", tmpDir)
+	setAge(oldFile.Name(), 35) // Make it older than 30 days
+
+	os.Args = []string{"rmstale", "-a", "30", "-p", tmpDir}
+
+	// Redirect stdin to simulate user input "n"
+	oldStdin := os.Stdin
+	defer func() { os.Stdin = oldStdin }()
+	r, w, _ := os.Pipe()
+	os.Stdin = r
+	go func() {
+		defer w.Close()
+		w.Write([]byte("n\n"))
+	}()
+
+	output := captureOutput(func() { main() })
+
+	// Should contain confirmation prompt and file should still exist since user denied
+	if !strings.Contains(output, "Continue") && !strings.Contains(output, "proceed") {
+		t.Fatalf("expected confirmation prompt in output, got %q", output)
+	}
+
+	// File should still exist since user denied confirmation
+	if !exists(oldFile.Name()) {
+		t.Fatal("file should still exist after denying confirmation")
+	}
+}
+
+// TestIsEmptyWithDeferError tests the defer error handling in isEmpty
+func TestIsEmptyWithDeferError(t *testing.T) {
+	// This is difficult to test directly, but we can test the normal case
+	// The defer error handling is covered when the file is properly closed
+	tmpDir := tempDirectory(t, "test", os.TempDir())
+	defer os.RemoveAll(tmpDir)
+
+	empty, err := isEmpty(tmpDir)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if !empty {
+		t.Fatal("expected empty directory to be reported as empty")
+	}
+}

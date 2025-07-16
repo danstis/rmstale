@@ -8,5 +8,6 @@
 		"fakefile",
 		"Infof",
 		"rmstale"
-	]
+	],
+	"go.lintTool": "golangci-lint-v2"
 }

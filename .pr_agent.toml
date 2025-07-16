@@ -1,4 +1,11 @@
+# Available options: https://github.com/qodo-ai/pr-agent/blob/main/pr_agent/settings/configuration.toml/
+# Use this page: 'https://qodo-merge-docs.qodo.ai/ai_search/' to ask questions about the configuration options.
+
 [config]
+model="o4-mini"
+fallback_models=["gpt-4.1"]
+model_reasoning="o4-mini"
+model_weak="gpt-4o"
 enable_custom_labels = true
 
 [custom_labels."bug 🐛"]
@@ -18,3 +25,6 @@ description = """Adds or modifies tests"""
 
 [ignore]
 glob = ['go.mod', 'go.sum']
+
+[pr_reviewer]
+enable_help_text = true
