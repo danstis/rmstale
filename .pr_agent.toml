@@ -18,3 +18,6 @@ description = """Adds or modifies tests"""
 
 [ignore]
 glob = ['go.mod', 'go.sum']
+
+[pr_description]
+enable_help_comment=true
