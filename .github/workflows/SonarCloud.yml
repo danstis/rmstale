@@ -39,12 +39,6 @@ jobs:
       - name: Run tests
         run: go test -v ./... -coverprofile=coverage.out -covermode=count -json > test-report.out
 
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v5.5.1
-        with:
-          files: ./coverage.out
-          token: ${{ secrets.CODECOV_TOKEN }}
-
       - name: SonarCloud Scan
         uses: SonarSource/sonarqube-scan-action@v6.0.0 # https://github.com/marketplace/actions/sonarqube-scan
         if: ${{ github.actor != 'dependabot[bot]' }}
