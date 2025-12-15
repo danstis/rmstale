@@ -28,13 +28,13 @@ jobs:
         id: go
 
       - name: Install GitVersion
-        uses: gittools/actions/gitversion/setup@v4.1.0
+        uses: gittools/actions/gitversion/setup@v4.2.0
         with:
           versionSpec: "6.x"
 
       - name: Version with GitVersion # https://github.com/marketplace/actions/use-actions
         id: gitversion
-        uses: gittools/actions/gitversion/execute@v4.1.0
+        uses: gittools/actions/gitversion/execute@v4.2.0
 
       - name: Run tests
         run: go test -v ./... -coverprofile=coverage.out -covermode=count -json > test-report.out
