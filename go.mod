@@ -1,6 +1,6 @@
 module github.com/danstis/rmstale
 
-go 1.24
+go 1.25
 
 require (
 	github.com/google/logger v1.1.1
