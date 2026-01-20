@@ -723,7 +723,7 @@ func TestMainWithConfirmationDenied(t *testing.T) {
 	os.Stdin = r
 	go func() {
 		defer w.Close()
-		w.Write([]byte("n\n"))
+		w.WriteString("n\n")
 	}()
 
 	output := captureOutput(func() { main() })
