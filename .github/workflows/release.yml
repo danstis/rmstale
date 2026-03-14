@@ -13,7 +13,6 @@ jobs:
     outputs:
       version: ${{ steps.gitversion.outputs.FullSemVer }}
       prerelease: ${{ steps.gitversion.outputs.PreReleaseTagWithDash }}
-      nuget: ${{ steps.gitversion.outputs.NuGetVersionV2 }}
     steps:
       - name: Check out code
         uses: actions/checkout@v6
@@ -63,7 +62,7 @@ jobs:
       - name: Replace version in NuSpec file
         uses: cschleiden/replace-tokens@v1
         env:
-          GitVersion_NuGetVersionV2: ${{ needs.tag.outputs.nuget }}
+          GitVersion_NuGetVersionV2: ${{ needs.tag.outputs.version }}
         with:
           files: '["rmstale.nuspec"]'
       - name: Create directory for chocolaty package
@@ -82,7 +81,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: winget
     steps:
-      - run: gh repo sync danstis/winget-pkgs -b master
+      - run: gh repo sync danstis/winget-pkgs -b master || echo "::warning::winget-pkgs sync skipped (missing workflow scope on token)"
         env:
           GH_TOKEN: ${{ secrets.WINGET_PAT }}
   winget:
