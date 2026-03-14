@@ -3,7 +3,7 @@ module github.com/danstis/rmstale
 go 1.25
 
 require (
-	github.com/google/logger v1.1.1
+	github.com/google/logger v1.1.2
 	github.com/stretchr/testify v1.11.1
 )
 
