@@ -13,7 +13,6 @@ jobs:
     outputs:
       version: ${{ steps.gitversion.outputs.FullSemVer }}
       prerelease: ${{ steps.gitversion.outputs.PreReleaseTagWithDash }}
-      nuget: ${{ steps.gitversion.outputs.NuGetVersionV2 }}
     steps:
       - name: Check out code
         uses: actions/checkout@v6
@@ -63,7 +62,7 @@ jobs:
       - name: Replace version in NuSpec file
         uses: cschleiden/replace-tokens@v1
         env:
-          GitVersion_NuGetVersionV2: ${{ needs.tag.outputs.nuget }}
+          GitVersion_NuGetVersionV2: ${{ needs.tag.outputs.version }}
         with:
           files: '["rmstale.nuspec"]'
       - name: Create directory for chocolaty package
@@ -82,7 +81,24 @@ jobs:
     runs-on: ubuntu-latest
     environment: winget
     steps:
-      - run: gh repo sync danstis/winget-pkgs -b master
+      - run: |
+          set +e
+          output=$(gh repo sync danstis/winget-pkgs -b master 2>&1)
+          status=$?
+          set -e
+
+          printf '%s\n' "$output"
+
+          if [ "$status" -eq 0 ]; then
+            exit 0
+          fi
+
+          if printf '%s' "$output" | grep -Fq "require the \`workflow\` scope or permission to merge"; then
+            echo "::warning::winget-pkgs sync skipped because WINGET_PAT is missing workflow scope"
+            exit 0
+          fi
+
+          exit "$status"
         env:
           GH_TOKEN: ${{ secrets.WINGET_PAT }}
   winget:
