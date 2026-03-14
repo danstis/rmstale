@@ -550,6 +550,9 @@ func TestMainHelpShowsDefaults(t *testing.T) {
 	if !strings.Contains(output, "(REQUIRED)") || !strings.Contains(output, "(default false)") {
 		t.Fatalf("expected default values in usage output, got %q", output)
 	}
+	if !strings.Contains(output, "--prune-empty-dirs") {
+		t.Fatal("expected --prune-empty-dirs in usage output")
+	}
 }
 
 func TestGetExt(t *testing.T) {

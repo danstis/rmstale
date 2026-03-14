@@ -27,7 +27,8 @@ func usage() string {
   -p, --path            Path to a folder to process. (default %s)
   -v, --version         Displays the version of rmstale that is currently running. (default %v)
   -y, --confirm         Allows for processing without confirmation prompt, useful for scheduling. (default %v)
-`, false, "", filepath.FromSlash(os.TempDir()), false, false)
+  --prune-empty-dirs    Remove empty directories even if they are not stale. (default %v)
+`, false, "", filepath.FromSlash(os.TempDir()), false, false, false)
 }
 
 func main() {
