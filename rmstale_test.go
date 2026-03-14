@@ -257,7 +257,7 @@ func (suite *RMStateSuite) TestProcDirErrors() {
 		},
 	} {
 		suite.Run(t.name, func() {
-			err := procDir(t.path, t.directory, suite.age, t.ext, t.dryRun)
+			err := procDir(t.path, t.directory, suite.age, t.ext, t.dryRun, false)
 			suite.Equal(t.wantErr, (err != nil))
 		})
 	}
@@ -265,7 +265,7 @@ func (suite *RMStateSuite) TestProcDirErrors() {
 
 // TestDirectoryProcessing tests the running the entire process over a directory
 func (suite *RMStateSuite) TestDirectoryProcessing() {
-	err := procDir(suite.rootDir, suite.rootDir, suite.age, "", false)
+	err := procDir(suite.rootDir, suite.rootDir, suite.age, "", false, false)
 	// Ensure that err == nil
 	suite.Nil(err)
 
@@ -295,7 +295,7 @@ func (suite *RMStateSuite) TestDirectoryProcessing() {
 
 // TestFilteredDirectoryProcessing tests the running the entire process over a directory
 func (suite *RMStateSuite) TestFilteredDirectoryProcessing() {
-	err := procDir(suite.rootDir, suite.rootDir, suite.age, "yes", false)
+	err := procDir(suite.rootDir, suite.rootDir, suite.age, "yes", false, false)
 	// Ensure that err == nil
 	suite.Nil(err)
 
@@ -323,7 +323,7 @@ func (suite *RMStateSuite) TestFilteredDirectoryProcessing() {
 
 // TestDryRunOption tests the dry run option
 func (suite *RMStateSuite) TestDryRunOption() {
-	err := procDir(suite.rootDir, suite.rootDir, suite.age, "yes", true)
+	err := procDir(suite.rootDir, suite.rootDir, suite.age, "yes", true, false)
 	// Ensure that err == nil
 	suite.Nil(err)
 
@@ -347,6 +347,28 @@ func (suite *RMStateSuite) TestDryRunOption() {
 	suite.True(exists(suite.oldSubdir2))
 	suite.True(exists(suite.oldSubdir3))
 	suite.True(exists(suite.oldEmptySubdir))
+}
+
+
+// TestPruneEmptyDirsOption tests the prune-empty-dirs option
+func (suite *RMStateSuite) TestPruneEmptyDirsOption() {
+	// Create a new empty subdirectory that is recent (should normally be kept)
+	recentEmptySubdir := tempDirectory(suite.T(), "recentEmptySubdir", suite.rootDir)
+	setAge(recentEmptySubdir, suite.age-4)
+
+	// Run procDir with pruneEmptyDirs = true
+	err := procDir(suite.rootDir, suite.rootDir, suite.age, "", false, true)
+	// Ensure that err == nil
+	suite.Nil(err)
+
+	// Check that the recent empty subdirectory is removed
+	suite.False(exists(recentEmptySubdir))
+
+	// Check that other empty directories (even recent ones) are also removed
+	suite.False(exists(suite.recentSubdir1))
+
+	// Check that non-empty directories are still retained
+	suite.True(exists(suite.oldSubdir3))
 }
 
 // TestVersionInfo tests the version information output
@@ -528,6 +550,9 @@ func TestMainHelpShowsDefaults(t *testing.T) {
 	if !strings.Contains(output, "(REQUIRED)") || !strings.Contains(output, "(default false)") {
 		t.Fatalf("expected default values in usage output, got %q", output)
 	}
+	if !strings.Contains(output, "--prune-empty-dirs") {
+		t.Fatal("expected --prune-empty-dirs in usage output")
+	}
 }
 
 func TestGetExt(t *testing.T) {
@@ -658,7 +683,7 @@ func TestHandleEmptyDirectoryWithExtensionFilter(t *testing.T) {
 	setAge(tmpDir, 30)
 
 	// Test with extension filter - should not remove directory even if empty and old
-	err := handleEmptyDirectory(tmpDir, fileInfo(t, tmpDir), 20, "txt", tmpDir, false)
+	err := handleEmptyDirectory(tmpDir, fileInfo(t, tmpDir), 20, "txt", tmpDir, false, false)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -669,12 +694,34 @@ func TestHandleEmptyDirectoryWithExtensionFilter(t *testing.T) {
 	}
 }
 
+// TestHandleEmptyDirectoryWithPruneAndExtensionFilter tests handleEmptyDirectory with both prune and extension filter
+func TestHandleEmptyDirectoryWithPruneAndExtensionFilter(t *testing.T) {
+	tmpDir := tempDirectory(t, "test", os.TempDir())
+	defer os.RemoveAll(tmpDir)
+
+	subDir := tempDirectory(t, "subdir", tmpDir)
+
+	// Make directory old
+	setAge(subDir, 30)
+
+	// Test with extension filter AND pruneEmptyDirs - should remove directory
+	err := handleEmptyDirectory(subDir, fileInfo(t, subDir), 20, "txt", tmpDir, false, true)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	// Directory should be removed because pruneEmptyDirs is true, even though extension filter is set
+	if exists(subDir) {
+		t.Fatal("directory should have been removed with pruneEmptyDirs even with extension filter")
+	}
+}
+
 // TestProcDirWithFileAsPath tests procDir when given a file path instead of directory
 func TestProcDirWithFileAsPath(t *testing.T) {
 	tmpFile := tempFile(t, "test", os.TempDir())
 	defer os.Remove(tmpFile.Name())
 
-	err := procDir(tmpFile.Name(), tmpFile.Name(), 30, "", false)
+	err := procDir(tmpFile.Name(), tmpFile.Name(), 30, "", false, false)
 	if err == nil {
 		t.Fatal("expected error when processing a file path as directory")
 	}
@@ -701,7 +748,7 @@ func TestMainWithConfirmationDenied(t *testing.T) {
 	os.Stdin = r
 	go func() {
 		defer w.Close()
-		w.Write([]byte("n\n"))
+		w.WriteString("n\n")
 	}()
 
 	output := captureOutput(func() { main() })

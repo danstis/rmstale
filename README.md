@@ -71,6 +71,7 @@ rm rmstale.tar.gz
 | -d, --dry-run   | Runs the process in dry-run mode. No files will be removed, but the tool will log the files that would be deleted. | `false`         |
 | -e, --extension | Filter files for a defined file extension. This flag only applies to files, not directories.                       | *(empty)*       |
 | -p, --path      | Path to a folder to process.                                                                                       | system temp dir |
+| --prune-empty-dirs | Remove empty directories even if they are not stale.                                                            | `false`         |
 | -v, --version   | Displays the version of rmstale that is currently running.                                                         | `false`         |
 | -y, --confirm   | Allows for processing without confirmation prompt, useful for scheduling.                                          | `false`         |
 

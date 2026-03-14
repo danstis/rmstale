@@ -27,7 +27,8 @@ func usage() string {
   -p, --path            Path to a folder to process. (default %s)
   -v, --version         Displays the version of rmstale that is currently running. (default %v)
   -y, --confirm         Allows for processing without confirmation prompt, useful for scheduling. (default %v)
-`, false, "", filepath.FromSlash(os.TempDir()), false, false)
+  --prune-empty-dirs    Remove empty directories even if they are not stale. (default %v)
+`, false, "", filepath.FromSlash(os.TempDir()), false, false, false)
 }
 
 func main() {
@@ -54,6 +55,8 @@ func main() {
 	flag.BoolVar(&showVersion, "version", false, "Display version information.")
 	flag.BoolVar(&dryRun, "d", false, "Dry run mode, no files will be removed.")
 	flag.BoolVar(&dryRun, "dry-run", false, "Dry run mode, no files will be removed.")
+	var pruneEmptyDirs bool
+	flag.BoolVar(&pruneEmptyDirs, "prune-empty-dirs", false, "Remove empty directories even if they are not stale.")
 
 	// Parse flags
 	flag.Parse()
@@ -88,7 +91,7 @@ func main() {
 
 	logger.Infof("rmstale started against folder '%v'%s for contents older than %v days.", filepath.FromSlash(folder), extMsg, age)
 
-	if err := procDir(folder, folder, age, ext, dryRun); err != nil {
+	if err := procDir(folder, folder, age, ext, dryRun, pruneEmptyDirs); err != nil {
 		logger.Errorf("Something went wrong: %v", err)
 	}
 }
@@ -115,7 +118,7 @@ func prompt(format string, a ...any) bool {
 // It takes the file path (fp) of the directory to process, the root folder (rootFolder) for reference,
 // the age (age) in days to determine staleness, and the file extension (ext) to filter files.
 // It returns an error if any operation fails.
-func procDir(fp, rootFolder string, age int, ext string, dryRun bool) error {
+func procDir(fp, rootFolder string, age int, ext string, dryRun, pruneEmptyDirs bool) error {
 	di, err := os.Stat(fp)
 	if err != nil {
 		return err
@@ -128,7 +131,7 @@ func procDir(fp, rootFolder string, age int, ext string, dryRun bool) error {
 
 	for _, item := range infos {
 		if item.IsDir() {
-			if err := procDir(path.Join(fp, item.Name()), rootFolder, age, ext, dryRun); err != nil {
+			if err := procDir(path.Join(fp, item.Name()), rootFolder, age, ext, dryRun, pruneEmptyDirs); err != nil {
 				return err
 			}
 		} else {
@@ -136,7 +139,7 @@ func procDir(fp, rootFolder string, age int, ext string, dryRun bool) error {
 		}
 	}
 
-	return handleEmptyDirectory(fp, di, age, ext, rootFolder, dryRun)
+	return handleEmptyDirectory(fp, di, age, ext, rootFolder, dryRun, pruneEmptyDirs)
 }
 
 // getDirectoryContents retrieves the contents of a directory.
@@ -164,13 +167,18 @@ func processFile(item fs.FileInfo, fp, rootFolder string, age int, ext string, d
 }
 
 // handleEmptyDirectory handles the removal of an empty directory if it is stale.
-func handleEmptyDirectory(fp string, di fs.FileInfo, age int, ext, rootFolder string, dryRun bool) error {
+func handleEmptyDirectory(fp string, di fs.FileInfo, age int, ext, rootFolder string, dryRun, pruneEmptyDirs bool) error {
 	empty, err := isEmpty(fp)
 	if err != nil {
 		return err
 	}
-	if empty && isStale(di, age) && ext == "" {
-		removeItem(fp, rootFolder, dryRun)
+	if empty {
+		// Remove if pruneEmptyDirs is set, OR if the directory is stale and no extension filter is active.
+		// The extension filter makes directory removal conservative by default to avoid deleting
+		// directory structures when only certain file types are being cleaned up.
+		if pruneEmptyDirs || (isStale(di, age) && ext == "") {
+			removeItem(fp, rootFolder, dryRun)
+		}
 	}
 	return nil
 }
