@@ -691,6 +691,28 @@ func TestHandleEmptyDirectoryWithExtensionFilter(t *testing.T) {
 	}
 }
 
+// TestHandleEmptyDirectoryWithPruneAndExtensionFilter tests handleEmptyDirectory with both prune and extension filter
+func TestHandleEmptyDirectoryWithPruneAndExtensionFilter(t *testing.T) {
+	tmpDir := tempDirectory(t, "test", os.TempDir())
+	defer os.RemoveAll(tmpDir)
+
+	subDir := tempDirectory(t, "subdir", tmpDir)
+
+	// Make directory old
+	setAge(subDir, 30)
+
+	// Test with extension filter AND pruneEmptyDirs - should remove directory
+	err := handleEmptyDirectory(subDir, fileInfo(t, subDir), 20, "txt", tmpDir, false, true)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	// Directory should be removed because pruneEmptyDirs is true, even though extension filter is set
+	if exists(subDir) {
+		t.Fatal("directory should have been removed with pruneEmptyDirs even with extension filter")
+	}
+}
+
 // TestProcDirWithFileAsPath tests procDir when given a file path instead of directory
 func TestProcDirWithFileAsPath(t *testing.T) {
 	tmpFile := tempFile(t, "test", os.TempDir())

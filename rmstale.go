@@ -172,6 +172,9 @@ func handleEmptyDirectory(fp string, di fs.FileInfo, age int, ext, rootFolder st
 		return err
 	}
 	if empty {
+		// Remove if pruneEmptyDirs is set, OR if the directory is stale and no extension filter is active.
+		// The extension filter makes directory removal conservative by default to avoid deleting
+		// directory structures when only certain file types are being cleaned up.
 		if pruneEmptyDirs || (isStale(di, age) && ext == "") {
 			removeItem(fp, rootFolder, dryRun)
 		}
