@@ -41,7 +41,7 @@ jobs:
       - name: Run tests
         run: go test -v ./... -coverprofile=coverage.out -covermode=count -json > test-report.out
       - name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@v7.0.0
+        uses: goreleaser/goreleaser-action@v7.2.1
         with:
           version: latest
           args: build --snapshot --clean
