@@ -69,8 +69,8 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh variable set OSSIGN_PENDING_WORKFLOW_ID --body ""
-          gh variable set OSSIGN_RELEASE_TAG --body ""
+          gh variable set OSSIGN_PENDING_WORKFLOW_ID --body "" --repo ${{ github.repository }}
+          gh variable set OSSIGN_RELEASE_TAG --body "" --repo ${{ github.repository }}
 
   winget:
     name: Publish winget package

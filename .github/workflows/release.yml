@@ -94,8 +94,8 @@ jobs:
 
       - name: Store pending signing state
         run: |
-          gh variable set OSSIGN_PENDING_WORKFLOW_ID --body "${{ steps.dispatch.outputs.workflow_id }}"
-          gh variable set OSSIGN_RELEASE_TAG --body "v${{ needs.tag.outputs.version }}"
+          gh variable set OSSIGN_PENDING_WORKFLOW_ID --body "${{ steps.dispatch.outputs.workflow_id }}" --repo ${{ github.repository }}
+          gh variable set OSSIGN_RELEASE_TAG --body "v${{ needs.tag.outputs.version }}" --repo ${{ github.repository }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
