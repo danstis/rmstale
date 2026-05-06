@@ -26,14 +26,14 @@ jobs:
 
           if [ "$tags" != "[]" ] && [ -n "$tags" ]; then
             while IFS= read -r tag; do
-              tmpdir=$(mktemp -d)
-              if gh release download "$tag" --repo ${{ github.repository }} --asset .ossign-pending --dir "$tmpdir" 2>/dev/null; then
-                workflow_id=$(tr -d '[:space:]' < "$tmpdir/.ossign-pending")
+              browser_url=$(gh release view "$tag" --repo ${{ github.repository }} --json assets \
+                --jq '.assets[] | select(.name == ".ossign-pending") | .browser_download_url' 2>/dev/null)
+              if [ -n "$browser_url" ]; then
+                workflow_id=$(curl -fsSL -H "Authorization: Bearer $GH_TOKEN" "$browser_url" 2>/dev/null | tr -d '[:space:]')
                 if [ -n "$workflow_id" ]; then
                   pending=$(echo "$pending" | jq --arg tag "$tag" --arg wid "$workflow_id" '. + [{"tag": $tag, "workflow_id": $wid}]')
                 fi
               fi
-              rm -rf "$tmpdir"
             done < <(echo "$tags" | jq -r '.[]')
           fi
 
