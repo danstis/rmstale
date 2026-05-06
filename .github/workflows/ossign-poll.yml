@@ -1,0 +1,108 @@
+name: OSSign Polling
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+
+jobs:
+  poll:
+    name: Check OSSign signing status
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write    # upload signed release assets
+      variables: write   # clear repository variables after completion
+    outputs:
+      signing_complete: ${{ steps.set-complete.outputs.signing_complete }}
+
+    steps:
+      - name: Check for pending signing request
+        id: check-pending
+        run: |
+          pending_id="${{ vars.OSSIGN_PENDING_WORKFLOW_ID }}"
+          if [ -z "$pending_id" ]; then
+            echo "No pending signing request. Exiting."
+            echo "has_pending=false" >> $GITHUB_OUTPUT
+          else
+            echo "Pending workflow: $pending_id"
+            echo "has_pending=true" >> $GITHUB_OUTPUT
+            echo "workflow_id=$pending_id" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Check OSSign signing status
+        if: steps.check-pending.outputs.has_pending == 'true'
+        id: ossign-check
+        uses: ossign/actions/workflow/dispatch@fbf0b39466d9409f05d1efc0e58cc3e4615ac625
+        with:
+          username: ${{ secrets.OSSIGN_USER }}
+          token: ${{ secrets.OSSIGN_TOKEN }}
+          single_check: ${{ steps.check-pending.outputs.workflow_id }}
+
+      - name: Replace release assets with signed files
+        if: >-
+          steps.check-pending.outputs.has_pending == 'true' &&
+          steps.ossign-check.outputs.signed_artifacts != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ vars.OSSIGN_RELEASE_TAG }}
+          SIGNED_ARTIFACTS: ${{ steps.ossign-check.outputs.signed_artifacts }}
+        run: |
+          echo "$SIGNED_ARTIFACTS" | jq -c '.[]' | while IFS= read -r artifact; do
+            name=$(echo "$artifact" | jq -r '.name')
+            url=$(echo "$artifact" | jq -r '.browser_download_url')
+            curl -fsSL -o "$name" "$url"
+            gh release upload "$RELEASE_TAG" "$name" --clobber
+            echo "Replaced: $name"
+          done
+
+      - name: Set signing complete flag
+        if: >-
+          steps.check-pending.outputs.has_pending == 'true' &&
+          steps.ossign-check.outputs.signed_artifacts != ''
+        id: set-complete
+        run: echo "signing_complete=true" >> $GITHUB_OUTPUT
+
+      - name: Clear pending signing state
+        if: >-
+          steps.check-pending.outputs.has_pending == 'true' &&
+          steps.ossign-check.outputs.signed_artifacts != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh variable set OSSIGN_PENDING_WORKFLOW_ID --body ""
+          gh variable set OSSIGN_RELEASE_TAG --body ""
+
+  winget:
+    name: Publish winget package
+    runs-on: windows-latest
+    needs: poll
+    if: needs.poll.outputs.signing_complete == 'true'
+    environment: winget
+    steps:
+      - name: Submit danstis.rmstale package to WinGet Community Repository
+        env:
+          WINGET_PAT: ${{ secrets.WINGET_PAT }}
+        run: |
+          $ErrorActionPreference = "Stop"
+
+          $wingetPackage = "danstis.rmstale"
+          $gitToken = $env:WINGET_PAT
+
+          $github = Invoke-RestMethod -uri "https://api.github.com/repos/danstis/rmstale/releases"
+
+          $targetRelease = $github | Where-Object {-not $_.draft -and -not $_.prerelease} | Select -First 1
+          $installerAmd64Url = $targetRelease.assets | Where-Object {$_.name -match 'rmstale_.*_windows_x86_64.zip'} | Select -ExpandProperty browser_download_url -First 1
+          $installerArm64Url = $targetRelease.assets | Where-Object {$_.name -match 'rmstale_.*_windows_arm64.zip'} | Select -ExpandProperty browser_download_url -First 1
+          $installerX86Url = $targetRelease.assets | Where-Object {$_.name -match 'rmstale_.*_windows_i386.zip'} | Select -ExpandProperty browser_download_url -First 1
+          $ver = $targetRelease.tag_name.Trim("v")
+
+          if (-not $installerAmd64Url -or -not $installerArm64Url -or -not $installerX86Url -or -not $ver) {
+            Write-Error "One or more installer URLs are empty."
+          }
+
+          iwr https://aka.ms/wingetcreate/latest -OutFile wingetcreate.exe
+          try {
+            .\wingetcreate.exe update $wingetPackage --submit --version $ver --urls $installerAmd64Url $installerArm64Url $installerX86Url --token $gitToken
+          } catch {
+            Write-Error "Failed to submit the winget package: $_"
+          }
