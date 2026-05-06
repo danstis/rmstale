@@ -24,12 +24,18 @@ jobs:
           tags=$(gh release list --repo ${{ github.repository }} --limit 20 --json tagName,isPrerelease \
             --jq '[.[] | select(.isPrerelease) | .tagName]')
 
+          echo "Prerelease tags found: $tags"
           if [ "$tags" != "[]" ] && [ -n "$tags" ]; then
             while IFS= read -r tag; do
+              echo "Checking tag: $tag"
+              assets=$(gh release view "$tag" --repo ${{ github.repository }} --json assets --jq '.assets[].name' 2>/dev/null)
+              echo "Assets for $tag: $assets"
               browser_url=$(gh release view "$tag" --repo ${{ github.repository }} --json assets \
                 --jq '.assets[] | select(.name == "default.ossign-pending") | .browser_download_url' 2>/dev/null)
+              echo "browser_url: $browser_url"
               if [ -n "$browser_url" ]; then
                 workflow_id=$(curl -fsSL -H "Authorization: Bearer $GH_TOKEN" "$browser_url" 2>/dev/null | tr -d '[:space:]')
+                echo "workflow_id: $workflow_id"
                 if [ -n "$workflow_id" ]; then
                   pending=$(echo "$pending" | jq --arg tag "$tag" --arg wid "$workflow_id" '. + [{"tag": $tag, "workflow_id": $wid}]')
                 fi
