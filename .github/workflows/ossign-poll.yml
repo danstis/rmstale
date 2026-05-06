@@ -27,7 +27,7 @@ jobs:
           if [ "$tags" != "[]" ] && [ -n "$tags" ]; then
             while IFS= read -r tag; do
               browser_url=$(gh release view "$tag" --repo ${{ github.repository }} --json assets \
-                --jq '.assets[] | select(.name == ".ossign-pending") | .browser_download_url' 2>/dev/null)
+                --jq '.assets[] | select(.name == "default.ossign-pending ") | .browser_download_url' 2>/dev/null)
               if [ -n "$browser_url" ]; then
                 workflow_id=$(curl -fsSL -H "Authorization: Bearer $GH_TOKEN" "$browser_url" 2>/dev/null | tr -d '[:space:]')
                 if [ -n "$workflow_id" ]; then
@@ -89,7 +89,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           asset_id=$(gh api "repos/${{ github.repository }}/releases/tags/${{ matrix.tag }}" \
-            --jq '.assets[] | select(.name == ".ossign-pending") | .id')
+            --jq '.assets[] | select(.name == "default.ossign-pending ") | .id')
           gh api "repos/${{ github.repository }}/releases/assets/$asset_id" -X DELETE
           gh release edit "${{ matrix.tag }}" --prerelease=false --repo ${{ github.repository }}
 
