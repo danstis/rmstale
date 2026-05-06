@@ -19,8 +19,8 @@ jobs:
         id: find
         run: |
           cutoff=$(date -u -d '24 hours ago' +%Y-%m-%dT%H:%M:%SZ)
-          tags=$(gh release list --limit 20 --json tagName,assets,createdAt \
-            --jq --arg cutoff "$cutoff" \
+          tags=$(gh release list --limit 20 --json tagName,assets,createdAt | \
+            jq --arg cutoff "$cutoff" \
             '[.[] | select(.createdAt > $cutoff) | select(any(.assets[]; .name == ".ossign-pending")) | .tagName]')
           if [ "$tags" == "[]" ] || [ -z "$tags" ]; then
             echo "No pending signing requests found."
