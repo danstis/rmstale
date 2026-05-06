@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write    # upload signed release assets
-      variables: write   # clear repository variables after completion
+      actions: write     # set/clear repository variables after completion
     outputs:
       signing_complete: ${{ steps.set-complete.outputs.signing_complete }}
 

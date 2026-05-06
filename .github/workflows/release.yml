@@ -82,7 +82,7 @@ jobs:
     needs: [tag, release]
     if: ${{ needs.tag.outputs.prerelease == '' }}
     permissions:
-      variables: write
+      actions: write
     steps:
       - name: Dispatch signing request to OSSign
         id: dispatch
