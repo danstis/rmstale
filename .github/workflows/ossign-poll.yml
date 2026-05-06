@@ -18,7 +18,7 @@ jobs:
       - name: Find releases pending signing
         id: find
         run: |
-          tags=$(gh release list --limit 20 --json tagName,isPrerelease \
+          tags=$(gh release list --repo ${{ github.repository }} --limit 20 --json tagName,isPrerelease \
             --jq '[.[] | select(.isPrerelease) | .tagName]')
           if [ "$tags" == "[]" ] || [ -z "$tags" ]; then
             echo "No pending signing requests found."
@@ -49,7 +49,7 @@ jobs:
       - name: Get pending workflow ID for ${{ matrix.tag }}
         id: get-workflow-id
         run: |
-          workflow_id=$(gh release download "${{ matrix.tag }}" --asset .ossign-pending --output - 2>/dev/null | tr -d '[:space:]') || true
+          workflow_id=$(gh release download "${{ matrix.tag }}" --repo ${{ github.repository }} --asset .ossign-pending --output - 2>/dev/null | tr -d '[:space:]') || true
           echo "workflow_id=$workflow_id" >> $GITHUB_OUTPUT
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -73,7 +73,7 @@ jobs:
             name=$(echo "$artifact" | jq -r '.name')
             url=$(echo "$artifact" | jq -r '.browser_download_url')
             curl -fsSL -o "$name" "$url"
-            gh release upload "${{ matrix.tag }}" "$name" --clobber
+            gh release upload "${{ matrix.tag }}" "$name" --clobber --repo ${{ github.repository }}
             echo "Replaced: $name"
           done
 
@@ -104,7 +104,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          latest_tag=$(gh release list --exclude-drafts --exclude-pre-releases --limit 1 \
+          latest_tag=$(gh release list --repo ${{ github.repository }} --exclude-drafts --exclude-pre-releases --limit 1 \
             --json tagName --jq '.[0].tagName')
           gh release edit "$latest_tag" --latest --repo ${{ github.repository }}
 
