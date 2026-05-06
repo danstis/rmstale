@@ -12,25 +12,40 @@ jobs:
     permissions:
       contents: read
     outputs:
-      tags: ${{ steps.find.outputs.tags }}
+      pending: ${{ steps.find.outputs.pending }}
       has_pending: ${{ steps.find.outputs.has_pending }}
     steps:
       - name: Find releases pending signing
         id: find
-        run: |
-          tags=$(gh release list --repo ${{ github.repository }} --limit 20 --json tagName,isPrerelease \
-            --jq '[.[] | select(.isPrerelease) | .tagName]')
-          if [ "$tags" == "[]" ] || [ -z "$tags" ]; then
-            echo "No pending signing requests found."
-            echo "has_pending=false" >> $GITHUB_OUTPUT
-            echo "tags=[]" >> $GITHUB_OUTPUT
-          else
-            echo "Pending releases: $tags"
-            echo "has_pending=true" >> $GITHUB_OUTPUT
-            echo "tags=$tags" >> $GITHUB_OUTPUT
-          fi
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          pending='[]'
+          tags=$(gh release list --repo ${{ github.repository }} --limit 20 --json tagName,isPrerelease \
+            --jq '[.[] | select(.isPrerelease) | .tagName]')
+
+          if [ "$tags" != "[]" ] && [ -n "$tags" ]; then
+            while IFS= read -r tag; do
+              tmpdir=$(mktemp -d)
+              if gh release download "$tag" --repo ${{ github.repository }} --asset .ossign-pending --dir "$tmpdir" 2>/dev/null; then
+                workflow_id=$(tr -d '[:space:]' < "$tmpdir/.ossign-pending")
+                if [ -n "$workflow_id" ]; then
+                  pending=$(echo "$pending" | jq --arg tag "$tag" --arg wid "$workflow_id" '. + [{"tag": $tag, "workflow_id": $wid}]')
+                fi
+              fi
+              rm -rf "$tmpdir"
+            done < <(echo "$tags" | jq -r '.[]')
+          fi
+
+          if [ "$pending" == "[]" ]; then
+            echo "No pending signing requests found."
+            echo "has_pending=false" >> $GITHUB_OUTPUT
+            echo "pending=[]" >> $GITHUB_OUTPUT
+          else
+            echo "Pending releases: $pending"
+            echo "has_pending=true" >> $GITHUB_OUTPUT
+            echo "pending=$pending" >> $GITHUB_OUTPUT
+          fi
 
   poll:
     name: Check OSSign signing status (${{ matrix.tag }})
@@ -39,29 +54,20 @@ jobs:
     if: needs.find-pending.outputs.has_pending == 'true'
     strategy:
       matrix:
-        tag: ${{ fromJson(needs.find-pending.outputs.tags) }}
+        include: ${{ fromJson(needs.find-pending.outputs.pending) }}
       fail-fast: false
     permissions:
       contents: write
     outputs:
       signing_complete: ${{ steps.set-complete.outputs.signing_complete }}
     steps:
-      - name: Get pending workflow ID for ${{ matrix.tag }}
-        id: get-workflow-id
-        run: |
-          workflow_id=$(gh release download "${{ matrix.tag }}" --repo ${{ github.repository }} --asset .ossign-pending --output - 2>/dev/null | tr -d '[:space:]') || true
-          echo "workflow_id=$workflow_id" >> $GITHUB_OUTPUT
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Check OSSign signing status
-        if: steps.get-workflow-id.outputs.workflow_id != ''
         id: ossign-check
         uses: ossign/actions/workflow/dispatch@fbf0b39466d9409f05d1efc0e58cc3e4615ac625
         with:
           username: ${{ secrets.OSSIGN_USER }}
           token: ${{ secrets.OSSIGN_TOKEN }}
-          single_check: ${{ steps.get-workflow-id.outputs.workflow_id }}
+          single_check: ${{ matrix.workflow_id }}
 
       - name: Replace release assets with signed files
         if: steps.ossign-check.outputs.signed_artifacts != ''
