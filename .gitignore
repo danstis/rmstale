@@ -14,5 +14,3 @@ bin
 
 # Repo specific
 /dist
-.omc/
-.emdash.json
