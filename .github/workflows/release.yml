@@ -82,7 +82,7 @@ jobs:
     needs: [tag, release]
     if: ${{ needs.tag.outputs.prerelease == '' }}
     permissions:
-      actions: write
+      contents: write
     steps:
       - name: Dispatch signing request to OSSign
         id: dispatch
@@ -94,8 +94,8 @@ jobs:
 
       - name: Store pending signing state
         run: |
-          gh variable set OSSIGN_PENDING_WORKFLOW_ID --body "${{ steps.dispatch.outputs.workflow_id }}" --repo ${{ github.repository }}
-          gh variable set OSSIGN_RELEASE_TAG --body "v${{ needs.tag.outputs.version }}" --repo ${{ github.repository }}
+          echo "${{ steps.dispatch.outputs.workflow_id }}" > .ossign-pending
+          gh release upload "v${{ needs.tag.outputs.version }}" .ossign-pending --repo ${{ github.repository }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

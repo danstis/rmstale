@@ -6,71 +6,92 @@ on:
   workflow_dispatch:
 
 jobs:
-  poll:
-    name: Check OSSign signing status
+  find-pending:
+    name: Find pending signing requests
     runs-on: ubuntu-latest
     permissions:
-      contents: write    # upload signed release assets
-      actions: write     # set/clear repository variables after completion
+      contents: read
+    outputs:
+      tags: ${{ steps.find.outputs.tags }}
+      has_pending: ${{ steps.find.outputs.has_pending }}
+    steps:
+      - name: Find releases pending signing
+        id: find
+        run: |
+          cutoff=$(date -u -d '24 hours ago' +%Y-%m-%dT%H:%M:%SZ)
+          tags=$(gh release list --limit 20 --json tagName,assets,createdAt \
+            --jq --arg cutoff "$cutoff" \
+            '[.[] | select(.createdAt > $cutoff) | select(any(.assets[]; .name == ".ossign-pending")) | .tagName]')
+          if [ "$tags" == "[]" ] || [ -z "$tags" ]; then
+            echo "No pending signing requests found."
+            echo "has_pending=false" >> $GITHUB_OUTPUT
+            echo "tags=[]" >> $GITHUB_OUTPUT
+          else
+            echo "Pending releases: $tags"
+            echo "has_pending=true" >> $GITHUB_OUTPUT
+            echo "tags=$tags" >> $GITHUB_OUTPUT
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  poll:
+    name: Check OSSign signing status (${{ matrix.tag }})
+    runs-on: ubuntu-latest
+    needs: find-pending
+    if: needs.find-pending.outputs.has_pending == 'true'
+    strategy:
+      matrix:
+        tag: ${{ fromJson(needs.find-pending.outputs.tags) }}
+      fail-fast: false
+    permissions:
+      contents: write
     outputs:
       signing_complete: ${{ steps.set-complete.outputs.signing_complete }}
-
     steps:
-      - name: Check for pending signing request
-        id: check-pending
+      - name: Get pending workflow ID for ${{ matrix.tag }}
+        id: get-workflow-id
         run: |
-          pending_id="${{ vars.OSSIGN_PENDING_WORKFLOW_ID }}"
-          if [ -z "$pending_id" ]; then
-            echo "No pending signing request. Exiting."
-            echo "has_pending=false" >> $GITHUB_OUTPUT
-          else
-            echo "Pending workflow: $pending_id"
-            echo "has_pending=true" >> $GITHUB_OUTPUT
-            echo "workflow_id=$pending_id" >> $GITHUB_OUTPUT
-          fi
+          workflow_id=$(gh release download "${{ matrix.tag }}" --asset .ossign-pending --output - | tr -d '[:space:]')
+          echo "workflow_id=$workflow_id" >> $GITHUB_OUTPUT
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Check OSSign signing status
-        if: steps.check-pending.outputs.has_pending == 'true'
+        if: steps.get-workflow-id.outputs.workflow_id != ''
         id: ossign-check
         uses: ossign/actions/workflow/dispatch@fbf0b39466d9409f05d1efc0e58cc3e4615ac625
         with:
           username: ${{ secrets.OSSIGN_USER }}
           token: ${{ secrets.OSSIGN_TOKEN }}
-          single_check: ${{ steps.check-pending.outputs.workflow_id }}
+          single_check: ${{ steps.get-workflow-id.outputs.workflow_id }}
 
       - name: Replace release assets with signed files
-        if: >-
-          steps.check-pending.outputs.has_pending == 'true' &&
-          steps.ossign-check.outputs.signed_artifacts != ''
+        if: steps.ossign-check.outputs.signed_artifacts != ''
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          RELEASE_TAG: ${{ vars.OSSIGN_RELEASE_TAG }}
           SIGNED_ARTIFACTS: ${{ steps.ossign-check.outputs.signed_artifacts }}
         run: |
           echo "$SIGNED_ARTIFACTS" | jq -c '.[]' | while IFS= read -r artifact; do
             name=$(echo "$artifact" | jq -r '.name')
             url=$(echo "$artifact" | jq -r '.browser_download_url')
             curl -fsSL -o "$name" "$url"
-            gh release upload "$RELEASE_TAG" "$name" --clobber
+            gh release upload "${{ matrix.tag }}" "$name" --clobber
             echo "Replaced: $name"
           done
 
-      - name: Set signing complete flag
-        if: >-
-          steps.check-pending.outputs.has_pending == 'true' &&
-          steps.ossign-check.outputs.signed_artifacts != ''
-        id: set-complete
-        run: echo "signing_complete=true" >> $GITHUB_OUTPUT
-
       - name: Clear pending signing state
-        if: >-
-          steps.check-pending.outputs.has_pending == 'true' &&
-          steps.ossign-check.outputs.signed_artifacts != ''
+        if: steps.ossign-check.outputs.signed_artifacts != ''
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh variable set OSSIGN_PENDING_WORKFLOW_ID --body "" --repo ${{ github.repository }}
-          gh variable set OSSIGN_RELEASE_TAG --body "" --repo ${{ github.repository }}
+          asset_id=$(gh api "repos/${{ github.repository }}/releases/tags/${{ matrix.tag }}" \
+            --jq '.assets[] | select(.name == ".ossign-pending") | .id')
+          gh api "repos/${{ github.repository }}/releases/assets/$asset_id" -X DELETE
+
+      - name: Set signing complete flag
+        if: steps.ossign-check.outputs.signed_artifacts != ''
+        id: set-complete
+        run: echo "signing_complete=true" >> $GITHUB_OUTPUT
 
   winget:
     name: Publish winget package
