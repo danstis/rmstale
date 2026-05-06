@@ -18,10 +18,8 @@ jobs:
       - name: Find releases pending signing
         id: find
         run: |
-          cutoff=$(date -u -d '24 hours ago' +%Y-%m-%dT%H:%M:%SZ)
           tags=$(gh api "repos/${{ github.repository }}/releases?per_page=20" | \
-            jq --arg cutoff "$cutoff" \
-            '[.[] | select(.created_at > $cutoff) | select(any(.assets[]; .name == ".ossign-pending")) | .tag_name]')
+            jq '[.[] | select(any(.assets[]; .name == ".ossign-pending")) | .tag_name]')
           if [ "$tags" == "[]" ] || [ -z "$tags" ]; then
             echo "No pending signing requests found."
             echo "has_pending=false" >> $GITHUB_OUTPUT
