@@ -10,8 +10,8 @@ jobs:
     name: Check OSSign signing status
     runs-on: ubuntu-latest
     permissions:
-      contents: write
-      actions: write
+      contents: write    # upload signed release assets
+      variables: write   # clear repository variables after completion
     outputs:
       signing_complete: ${{ steps.set-complete.outputs.signing_complete }}
 
@@ -89,9 +89,9 @@ jobs:
           $github = Invoke-RestMethod -uri "https://api.github.com/repos/danstis/rmstale/releases"
 
           $targetRelease = $github | Where-Object {-not $_.draft -and -not $_.prerelease} | Select -First 1
-          $installerAmd64Url = $targetRelease | Select -ExpandProperty assets -First 1 | Where-Object {$_.name -match 'rmstale_.*_windows_x86_64.zip'} | Select -ExpandProperty browser_download_url
-          $installerArm64Url = $targetRelease | Select -ExpandProperty assets -First 1 | Where-Object {$_.name -match 'rmstale_.*_windows_arm64.zip'} | Select -ExpandProperty browser_download_url
-          $installerX86Url = $targetRelease | Select -ExpandProperty assets -First 1 | Where-Object {$_.name -match 'rmstale_.*_windows_i386.zip'} | Select -ExpandProperty browser_download_url
+          $installerAmd64Url = $targetRelease.assets | Where-Object {$_.name -match 'rmstale_.*_windows_x86_64.zip'} | Select -ExpandProperty browser_download_url -First 1
+          $installerArm64Url = $targetRelease.assets | Where-Object {$_.name -match 'rmstale_.*_windows_arm64.zip'} | Select -ExpandProperty browser_download_url -First 1
+          $installerX86Url = $targetRelease.assets | Where-Object {$_.name -match 'rmstale_.*_windows_i386.zip'} | Select -ExpandProperty browser_download_url -First 1
           $ver = $targetRelease.tag_name.Trim("v")
 
           if (-not $installerAmd64Url -or -not $installerArm64Url -or -not $installerX86Url -or -not $ver) {
