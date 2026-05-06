@@ -86,7 +86,7 @@ jobs:
     steps:
       - name: Dispatch signing request to OSSign
         id: dispatch
-        uses: ossign/actions/workflow/dispatch@main
+        uses: ossign/actions/workflow/dispatch@fbf0b39466d9409f05d1efc0e58cc3e4615ac625
         with:
           username: ${{ secrets.OSSIGN_USER }}
           token: ${{ secrets.OSSIGN_TOKEN }}

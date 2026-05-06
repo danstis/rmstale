@@ -32,7 +32,7 @@ jobs:
       - name: Check OSSign signing status
         if: steps.check-pending.outputs.has_pending == 'true'
         id: ossign-check
-        uses: ossign/actions/workflow/dispatch@main
+        uses: ossign/actions/workflow/dispatch@fbf0b39466d9409f05d1efc0e58cc3e4615ac625
         with:
           username: ${{ secrets.OSSIGN_USER }}
           token: ${{ secrets.OSSIGN_TOKEN }}
@@ -80,11 +80,13 @@ jobs:
     environment: winget
     steps:
       - name: Submit danstis.rmstale package to WinGet Community Repository
+        env:
+          WINGET_PAT: ${{ secrets.WINGET_PAT }}
         run: |
           $ErrorActionPreference = "Stop"
 
           $wingetPackage = "danstis.rmstale"
-          $gitToken = "${{ secrets.WINGET_PAT }}"
+          $gitToken = $env:WINGET_PAT
 
           $github = Invoke-RestMethod -uri "https://api.github.com/repos/danstis/rmstale/releases"
 
