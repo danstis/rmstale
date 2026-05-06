@@ -96,6 +96,7 @@ jobs:
         run: |
           echo "${{ steps.dispatch.outputs.workflow_id }}" > .ossign-pending
           gh release upload "v${{ needs.tag.outputs.version }}" .ossign-pending --repo ${{ github.repository }}
+          gh release edit "v${{ needs.tag.outputs.version }}" --prerelease --repo ${{ github.repository }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
