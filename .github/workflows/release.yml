@@ -15,7 +15,7 @@ jobs:
       prerelease: ${{ steps.gitversion.outputs.PreReleaseTagWithDash }}
     steps:
       - name: Check out code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - name: Install GitVersion
@@ -42,7 +42,7 @@ jobs:
     if: ${{ needs.tag.outputs.prerelease == '' }}
     steps:
       - name: Check out code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - name: Check if commit is tagged
