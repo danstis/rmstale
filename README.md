@@ -44,13 +44,40 @@ choco install rmstale
 winget install danstis.rmstale
 ```
 
-### Linux / macOS
+### Linux
 Visit the [releases page](https://github.com/danstis/rmstale/releases/latest) for the latest version, or use:
 ```sh
 # Fetch the latest release tag from GitHub
 latest_version=$(curl -s https://api.github.com/repos/danstis/rmstale/releases/latest | grep -Po '"tag_name": "\K.*?(?=")')
 # Download the latest version tarball
 curl -L -o rmstale.tar.gz "https://github.com/danstis/rmstale/releases/download/$latest_version/rmstale_${latest_version#v}_linux_amd64.tar.gz"
+# Extract and install
+sudo tar -xzf rmstale.tar.gz -C /usr/local/bin rmstale
+# Cleanup
+rm rmstale.tar.gz
+```
+
+### macOS
+Visit the [releases page](https://github.com/danstis/rmstale/releases/latest) for the latest version, or use the commands below.
+
+#### Apple Silicon (M1/M2/M3/M4)
+```sh
+# Fetch the latest release tag from GitHub
+latest_version=$(curl -s https://api.github.com/repos/danstis/rmstale/releases/latest | grep -Po '"tag_name": "\K.*?(?=")')
+# Download the latest version tarball for Apple Silicon
+curl -L -o rmstale.tar.gz "https://github.com/danstis/rmstale/releases/download/$latest_version/rmstale_${latest_version#v}_Darwin_arm64.tar.gz"
+# Extract and install
+sudo tar -xzf rmstale.tar.gz -C /usr/local/bin rmstale
+# Cleanup
+rm rmstale.tar.gz
+```
+
+#### Intel
+```sh
+# Fetch the latest release tag from GitHub
+latest_version=$(curl -s https://api.github.com/repos/danstis/rmstale/releases/latest | grep -Po '"tag_name": "\K.*?(?=")')
+# Download the latest version tarball for Intel
+curl -L -o rmstale.tar.gz "https://github.com/danstis/rmstale/releases/download/$latest_version/rmstale_${latest_version#v}_Darwin_x86_64.tar.gz"
 # Extract and install
 sudo tar -xzf rmstale.tar.gz -C /usr/local/bin rmstale
 # Cleanup
