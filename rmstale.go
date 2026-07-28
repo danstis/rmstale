@@ -34,6 +34,13 @@ func usage() string {
 }
 
 func main() {
+	os.Exit(run())
+}
+
+// run contains the core CLI logic for rmstale and returns the process exit code.
+// Splitting this out of main lets tests exercise error paths without invoking
+// os.Exit, which would otherwise terminate the test binary.
+func run() int {
 	flag.Usage = func() { fmt.Print(usage()) }
 
 	var (
@@ -66,7 +73,7 @@ func main() {
 	// Check if no command-line arguments were provided or if an argument is provided without a '-'
 	if flag.NFlag() == 0 && len(flag.Args()) == 0 || len(flag.Args()) > 0 && flag.Arg(0)[0] != '-' {
 		flag.Usage()
-		return
+		return exitSuccess
 	}
 
 	if ext != "" {
@@ -75,7 +82,7 @@ func main() {
 
 	if showVersion {
 		fmt.Println(versionInfo())
-		return
+		return exitSuccess
 	}
 
 	if err := validateAge(age); err != nil {
@@ -89,15 +96,25 @@ func main() {
 
 	if !confirm && !dryRun && !prompt("WARNING: Will remove files and folders recursively below '%v'%s older than %v days.", filepath.FromSlash(folder), extMsg, age) {
 		logger.Warning("Operation not confirmed, exiting.")
-		return
+		return exitSuccess
 	}
 
 	logger.Infof("rmstale started against folder '%v'%s for contents older than %v days.", filepath.FromSlash(folder), extMsg, age)
 
 	if err := procDir(folder, folder, age, ext, dryRun, pruneEmptyDirs); err != nil {
 		logger.Errorf("Something went wrong: %v", err)
+		return exitProcessingError
 	}
+	return exitSuccess
 }
+
+// Exit codes returned by run. Processing failures (BSOD-285) return a non-zero
+// code so that wrappers, schedulers and CI steps can distinguish a successful
+// run from one in which procDir reported an error.
+const (
+	exitSuccess         = 0
+	exitProcessingError = 1
+)
 
 // versionInfo returns the version information of the rmstale application
 func versionInfo() string {

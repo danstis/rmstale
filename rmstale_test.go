@@ -623,7 +623,7 @@ func captureOutput(f func()) string {
 func TestMainVersionFlag(t *testing.T) {
 	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
 	os.Args = []string{"rmstale", "-v"}
-	output := captureOutput(func() { main() })
+	output := captureOutput(func() { _ = run() })
 	if !strings.Contains(output, "rmstale v") {
 		t.Fatalf("expected version info, got %q", output)
 	}
@@ -632,7 +632,7 @@ func TestMainVersionFlag(t *testing.T) {
 func TestMainNoFlagsShowsUsage(t *testing.T) {
 	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
 	os.Args = []string{"rmstale"}
-	output := captureOutput(func() { main() })
+	output := captureOutput(func() { _ = run() })
 	if !strings.Contains(output, "Usage of rmstale") {
 		t.Fatalf("expected usage output, got %q", output)
 	}
@@ -729,8 +729,12 @@ func TestMainWithExtensionMessage(t *testing.T) {
 
 	os.Args = []string{"rmstale", "-a", "30", "-e", "txt", "-y", "-d", "-p", tmpDir}
 
-	// Run main and verify extension filtering works
-	main()
+	// Run run() (rather than main) and verify extension filtering works.
+	// main() would call os.Exit and terminate the test binary, so tests must
+	// exercise the CLI logic through run() instead.
+	if code := run(); code != exitSuccess {
+		t.Fatalf("expected exit code %d on dry-run success, got %d", exitSuccess, code)
+	}
 
 	// Both files should still exist since we're in dry-run mode
 	// But the extension logic should have been exercised
@@ -739,16 +743,18 @@ func TestMainWithExtensionMessage(t *testing.T) {
 	}
 }
 
-// TestMainWithProcDirError tests main function when procDir returns an error
-func TestMainWithProcDirError(_ *testing.T) {
+// TestMainWithProcDirError tests that run() returns a non-zero exit code when
+// procDir fails (regression for BSOD-285). The previous behaviour fell off the
+// end of main() and reported success (exit code 0) to the OS even though
+// processing had failed, which broke scheduled/cron wrappers.
+func TestMainWithProcDirError(t *testing.T) {
 	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
 	os.Args = []string{"rmstale", "-a", "30", "-p", "/nonexistent/path", "-y"}
 
-	// Just verify main doesn't panic when given invalid path
-	// The error handling is internal and logged, not returned
-	main()
-
-	// Test passes if no panic occurs - the error is handled internally
+	code := run()
+	if code != exitProcessingError {
+		t.Fatalf("expected exit code %d when procDir errors, got %d", exitProcessingError, code)
+	}
 }
 
 // TestIsEmptyWithFile tests isEmpty function with a file instead of directory
@@ -847,7 +853,12 @@ func TestMainWithConfirmationDenied(t *testing.T) {
 		w.WriteString("n\n")
 	}()
 
-	output := captureOutput(func() { main() })
+	output := captureOutput(func() {
+		code := run()
+		if code != exitSuccess {
+			t.Fatalf("expected exit code %d when user denies confirmation, got %d", exitSuccess, code)
+		}
+	})
 
 	// Should contain confirmation prompt and file should still exist since user denied
 	if !strings.Contains(output, "Continue") && !strings.Contains(output, "proceed") {
