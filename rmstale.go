@@ -62,9 +62,6 @@ func main() {
 	// Parse flags
 	flag.Parse()
 
-	defer logger.Init("rmstale", true, true, io.Discard).Close()
-	logger.SetFlags(log.Ltime)
-
 	// Check if no command-line arguments were provided or if an argument is provided without a '-'
 	if flag.NFlag() == 0 && len(flag.Args()) == 0 || len(flag.Args()) > 0 && flag.Arg(0)[0] != '-' {
 		flag.Usage()
@@ -80,10 +77,14 @@ func main() {
 		return
 	}
 
-	if age == 0 {
+	if err := validateAge(age); err != nil {
+		fmt.Fprintln(os.Stderr, "Error:", err)
 		flag.Usage()
-		return
+		os.Exit(1)
 	}
+
+	defer logger.Init("rmstale", true, true, io.Discard).Close()
+	logger.SetFlags(log.Ltime)
 
 	if !confirm && !dryRun && !prompt("WARNING: Will remove files and folders recursively below '%v'%s older than %v days.", filepath.FromSlash(folder), extMsg, age) {
 		logger.Warning("Operation not confirmed, exiting.")
@@ -100,6 +101,16 @@ func main() {
 // versionInfo returns the version information of the rmstale application
 func versionInfo() string {
 	return fmt.Sprintf("rmstale v%v", AppVersion)
+}
+
+// validateAge ensures the supplied --age is a positive integer. Any value <= 0
+// is rejected because negative ages invert the staleness comparison and cause
+// the tool to treat every file as stale (i.e. delete the entire target tree).
+func validateAge(age int) error {
+	if age <= 0 {
+		return fmt.Errorf("--age must be a positive integer (got %d)", age)
+	}
+	return nil
 }
 
 // prompt prompts the user for confirmation before proceeding.
