@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"os/exec"
 	"strings"
 	"testing"
 	"time"
@@ -18,6 +19,13 @@ import (
 func init() {
 	initLogger()
 }
+
+// testBinaryPath captures os.Args[0] before any test gets a chance to clobber
+// it (TestMainVersionFlag reassigns os.Args to simulate CLI invocation).
+// exec.Command needs the full test binary path; relying on os.Args[0] at the
+// moment TestMainRejectsNonPositiveAge runs would fail if a prior test changed
+// it.
+var testBinaryPath = os.Args[0]
 
 // RMStaleSuite defines the testing suite with the following files:
 //
@@ -348,7 +356,6 @@ func (suite *RMStateSuite) TestDryRunOption() {
 	suite.True(exists(suite.oldSubdir3))
 	suite.True(exists(suite.oldEmptySubdir))
 }
-
 
 // TestPruneEmptyDirsOption tests the prune-empty-dirs option
 func (suite *RMStateSuite) TestPruneEmptyDirsOption() {
@@ -778,4 +785,93 @@ func TestIsEmptyWithDeferError(t *testing.T) {
 	if !empty {
 		t.Fatal("expected empty directory to be reported as empty")
 	}
+}
+
+// TestValidateAge ensures the age guard rejects every non-positive value so a
+// negative --age cannot silently pass through and wipe the target directory.
+// Regression test for BSOD-281.
+func TestValidateAge(t *testing.T) {
+	for _, tt := range []struct {
+		name    string
+		age     int
+		wantErr bool
+	}{
+		{"positive age", 30, false},
+		{"age of one", 1, false},
+		{"zero age", 0, true},
+		{"negative age of one", -1, true},
+		{"negative age of seven", -7, true},
+		{"large negative age", -100, true},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			err := validateAge(tt.age)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("validateAge(%d) error = %v, wantErr = %v", tt.age, err, tt.wantErr)
+			}
+		})
+	}
+}
+
+// TestMainRejectsNonPositiveAge is the integration regression test for
+// BSOD-281: a negative or zero --age must not cause main() to descend into
+// procDir. It re-execs the test binary so the os.Exit(1) inside main() does
+// not tear down the parent test process.
+func TestMainRejectsNonPositiveAge(t *testing.T) {
+	if os.Getenv("BE_CRASHER") == "1" {
+		runCrasher(t)
+		return
+	}
+
+	for _, tt := range []struct {
+		name string
+		age  string
+	}{
+		{"negative age", "-1"},
+		{"zero age", "0"},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			tmpDir := tempDirectory(t, "rmstale-bsod281", os.TempDir())
+			t.Cleanup(func() { os.RemoveAll(tmpDir) })
+
+			cmd := exec.Command(testBinaryPath, "-test.run=TestMainRejectsNonPositiveAge")
+			cmd.Env = append(os.Environ(),
+				"BE_CRASHER=1",
+				fmt.Sprintf("RMSTALE_TEST_AGE=%s", tt.age),
+				fmt.Sprintf("RMSTALE_TEST_DIR=%s", tmpDir),
+			)
+			out, err := cmd.CombinedOutput()
+			if err == nil {
+				t.Fatalf("expected non-zero exit code, got nil. output: %s", out)
+			}
+			if !strings.Contains(string(out), "must be a positive integer") {
+				t.Logf("subprocess output: %q (len=%d)", out, len(out))
+				t.Logf("subprocess err: %v", err)
+				t.Fatalf("expected positive-integer error message, got %q", out)
+			}
+		})
+	}
+}
+
+// runCrasher is executed inside the BE_CRASHER subprocess. It sets up a
+// controlled temp directory with a sentinel file and invokes main() with the
+// age value supplied by the parent. If main() does not exit early (i.e. it
+// descends into procDir), the sentinel file is deleted and the test fails.
+func runCrasher(t *testing.T) {
+	age := os.Getenv("RMSTALE_TEST_AGE")
+	dir := os.Getenv("RMSTALE_TEST_DIR")
+	if age == "" || dir == "" {
+		t.Fatal("crasher requires RMSTALE_TEST_AGE and RMSTALE_TEST_DIR")
+	}
+
+	sentinel := tempFile(t, "must-not-be-deleted", dir)
+
+	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
+	os.Args = []string{"rmstale", "-a", age, "-p", dir, "-y"}
+	main()
+
+	if exists(sentinel.Name()) {
+		// main() returned without calling os.Exit — guard never tripped.
+		os.Exit(2)
+	}
+	os.Exit(0)
 }
