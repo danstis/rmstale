@@ -2,6 +2,7 @@
 package main
 
 import (
+	"bufio"
 	"flag"
 	"fmt"
 	"io"
@@ -103,15 +104,29 @@ func versionInfo() string {
 
 // prompt prompts the user for confirmation before proceeding.
 // It returns true if the user confirms, false otherwise.
+// Affirmative tokens: "y", "yes", "yeah", "yup" (case-insensitive, whitespace-trimmed).
+// Negative tokens:   "n", "no", "nope", "nah"  (case-insensitive, whitespace-trimmed).
+// Any other input is treated as ambiguous and re-prompts until the user gives a
+// clear answer or input ends (EOF), in which case it returns false.
 func prompt(format string, a ...any) bool {
 	fmt.Printf(format+" Continue? (y/n) ", a...)
-	var response string
-	_, err := fmt.Scanln(&response)
-	if err != nil {
-		logger.Errorf("Failed to read user input: %v", err)
-		return false
+	scanner := bufio.NewScanner(os.Stdin)
+	for {
+		if !scanner.Scan() {
+			if err := scanner.Err(); err != nil {
+				logger.Errorf("Failed to read user input: %v", err)
+			}
+			return false
+		}
+		switch strings.ToLower(strings.TrimSpace(scanner.Text())) {
+		case "y", "yes", "yeah", "yup":
+			return true
+		case "n", "no", "nope", "nah":
+			return false
+		default:
+			fmt.Print("Please answer y or n: ")
+		}
 	}
-	return strings.ToLower(response) == "y"
 }
 
 // procDir recursively processes a directory and removes stale files.
