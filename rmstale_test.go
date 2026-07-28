@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -157,6 +158,7 @@ func (suite *RMStateSuite) TestFileRemoval() {
 		directory string
 		dryRun    bool
 		want      bool
+		wantErr   bool
 	}{
 		{
 			name:      "Test with a file",
@@ -164,6 +166,7 @@ func (suite *RMStateSuite) TestFileRemoval() {
 			directory: suite.rootDir,
 			dryRun:    false,
 			want:      false,
+			wantErr:   false,
 		},
 		{
 			name:      "Test with an empty folder",
@@ -171,6 +174,7 @@ func (suite *RMStateSuite) TestFileRemoval() {
 			directory: suite.rootDir,
 			dryRun:    false,
 			want:      false,
+			wantErr:   false,
 		},
 		{
 			name:      "Test with a non-empty folder",
@@ -178,6 +182,7 @@ func (suite *RMStateSuite) TestFileRemoval() {
 			directory: suite.rootDir,
 			dryRun:    false,
 			want:      true,
+			wantErr:   true,
 		},
 		{
 			name:      "Test when given the root folder",
@@ -185,10 +190,12 @@ func (suite *RMStateSuite) TestFileRemoval() {
 			directory: suite.rootDir,
 			dryRun:    false,
 			want:      true,
+			wantErr:   false,
 		},
 	} {
 		suite.Run(t.name, func() {
-			removeItem(t.filename, t.directory, t.dryRun)
+			err := removeItem(t.filename, t.directory, t.dryRun)
+			suite.Equal(t.wantErr, err != nil)
 			got := exists(t.filename)
 			suite.Equal(t.want, got)
 		})
@@ -269,6 +276,39 @@ func (suite *RMStateSuite) TestProcDirErrors() {
 			suite.Equal(t.wantErr, (err != nil))
 		})
 	}
+}
+
+// TestRemoveItemReturnsErrorForMissingPath verifies that removeItem surfaces
+// the underlying os.Remove error instead of swallowing it.
+func (suite *RMStateSuite) TestRemoveItemReturnsErrorForMissingPath() {
+	missing := filepath.Join(suite.rootDir, "does-not-exist")
+	err := removeItem(missing, suite.rootDir, false)
+	suite.NotNil(err, "removeItem should return the os.Remove error for a missing path")
+}
+
+// TestProcessFilePropagatesRemoveError verifies that processFile returns the
+// error produced by removeItem so the caller can aggregate failures.
+func (suite *RMStateSuite) TestProcessFilePropagatesRemoveError() {
+	info := fileInfo(suite.T(), suite.oldFile1.Name())
+	setAge(suite.oldFile1.Name(), suite.age+4) // satisfy isStale on the info
+	// Use a non-existent parent directory so path.Join(fp, info.Name())
+	// resolves to a path that os.Remove cannot find.
+	err := processFile(info, filepath.Join(suite.rootDir, "missing-parent"), suite.rootDir, suite.age, "", false)
+	suite.NotNil(err, "processFile should propagate the removeItem error")
+}
+
+// TestHandleEmptyDirectoryPropagatesRemoveError verifies that handleEmptyDirectory
+// returns the error produced by removeItem so the caller can aggregate failures.
+func (suite *RMStateSuite) TestHandleEmptyDirectoryPropagatesRemoveError() {
+	// An empty stale directory under a non-existent parent: handleEmptyDirectory
+	// will still reach the removeItem branch (pruneEmptyDirs=true) and os.Remove
+	// will fail because the path does not exist.
+	tmpDir := tempDirectory(suite.T(), "staleEmpty", suite.rootDir)
+	setAge(tmpDir, suite.age+4)
+	missing := filepath.Join(tmpDir, "missing-empty-dir")
+
+	err := handleEmptyDirectory(missing, fileInfo(suite.T(), tmpDir), suite.age, "", tmpDir, false, true)
+	suite.NotNil(err, "handleEmptyDirectory should propagate the removeItem error")
 }
 
 // TestDirectoryProcessing tests the running the entire process over a directory
