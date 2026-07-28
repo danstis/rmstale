@@ -349,7 +349,6 @@ func (suite *RMStateSuite) TestDryRunOption() {
 	suite.True(exists(suite.oldEmptySubdir))
 }
 
-
 // TestPruneEmptyDirsOption tests the prune-empty-dirs option
 func (suite *RMStateSuite) TestPruneEmptyDirsOption() {
 	// Create a new empty subdirectory that is recent (should normally be kept)
@@ -409,6 +408,41 @@ func (suite *RMStateSuite) TestPrompt() {
 			want:     true,
 		},
 		{
+			name:     "Test with 'yes' response",
+			format:   "Test prompt (%s).",
+			a:        []interface{}{"yes"},
+			response: "yes\n",
+			want:     true,
+		},
+		{
+			name:     "Test with 'YES' response (case-insensitive)",
+			format:   "Test prompt (%s).",
+			a:        []interface{}{"YES"},
+			response: "YES\n",
+			want:     true,
+		},
+		{
+			name:     "Test with 'yeah' response",
+			format:   "Test prompt (%s).",
+			a:        []interface{}{"yeah"},
+			response: "yeah\n",
+			want:     true,
+		},
+		{
+			name:     "Test with 'yup' response",
+			format:   "Test prompt (%s).",
+			a:        []interface{}{"yup"},
+			response: "yup\n",
+			want:     true,
+		},
+		{
+			name:     "Test with 'y' surrounded by whitespace",
+			format:   "Test prompt (%s).",
+			a:        []interface{}{"y"},
+			response: "  y  \n",
+			want:     true,
+		},
+		{
 			name:     "Test with 'n' response",
 			format:   "Test prompt (%s).",
 			a:        []interface{}{"n"},
@@ -416,17 +450,31 @@ func (suite *RMStateSuite) TestPrompt() {
 			want:     false,
 		},
 		{
-			name:     "Test with invalid response",
+			name:     "Test with 'no' response",
 			format:   "Test prompt (%s).",
-			a:        []interface{}{"invalid"},
-			response: "invalid\n",
+			a:        []interface{}{"no"},
+			response: "no\n",
 			want:     false,
 		},
 		{
-			name:     "Test with error response",
+			name:     "Test with empty response (deny on EOF)",
 			format:   "Test prompt (%s).",
 			a:        []interface{}{"error"},
 			response: "",
+			want:     false,
+		},
+		{
+			name:     "Test re-prompt on ambiguous then confirm",
+			format:   "Test prompt (%s).",
+			a:        []interface{}{"maybe"},
+			response: "maybe\ny\n",
+			want:     true,
+		},
+		{
+			name:     "Test re-prompt on ambiguous then deny",
+			format:   "Test prompt (%s).",
+			a:        []interface{}{"maybe"},
+			response: "maybe\nn\n",
 			want:     false,
 		},
 	} {
