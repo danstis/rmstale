@@ -3,6 +3,7 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -143,7 +144,10 @@ func prompt(format string, a ...any) bool {
 // procDir recursively processes a directory and removes stale files.
 // It takes the file path (fp) of the directory to process, the root folder (rootFolder) for reference,
 // the age (age) in days to determine staleness, and the file extension (ext) to filter files.
-// It returns an error if any operation fails.
+// It returns a joined error of all failures encountered while processing the
+// directory tree so partial cleanup is visible to the caller. The function
+// continues walking siblings after an error so that every failure is reported
+// rather than only the first one.
 func procDir(fp, rootFolder string, age int, ext string, dryRun, pruneEmptyDirs bool) error {
 	di, err := os.Stat(fp)
 	if err != nil {
@@ -155,17 +159,22 @@ func procDir(fp, rootFolder string, age int, ext string, dryRun, pruneEmptyDirs 
 		return err
 	}
 
+	var errs []error
 	for _, item := range infos {
 		if item.IsDir() {
 			if err := procDir(path.Join(fp, item.Name()), rootFolder, age, ext, dryRun, pruneEmptyDirs); err != nil {
-				return err
+				errs = append(errs, err)
 			}
-		} else {
-			processFile(item, fp, rootFolder, age, ext, dryRun)
+		} else if err := processFile(item, fp, rootFolder, age, ext, dryRun); err != nil {
+			errs = append(errs, err)
 		}
 	}
 
-	return handleEmptyDirectory(fp, di, age, ext, rootFolder, dryRun, pruneEmptyDirs)
+	if err := handleEmptyDirectory(fp, di, age, ext, rootFolder, dryRun, pruneEmptyDirs); err != nil {
+		errs = append(errs, err)
+	}
+
+	return errors.Join(errs...)
 }
 
 // getDirectoryContents retrieves the contents of a directory.
@@ -186,13 +195,18 @@ func getDirectoryContents(fp string) ([]fs.FileInfo, error) {
 }
 
 // processFile processes a file to determine if it should be removed.
-func processFile(item fs.FileInfo, fp, rootFolder string, age int, ext string, dryRun bool) {
+// It returns any error from the underlying removal so the caller can
+// aggregate failures across the directory tree.
+func processFile(item fs.FileInfo, fp, rootFolder string, age int, ext string, dryRun bool) error {
 	if isStale(item, age) && matchExt(item.Name(), ext) {
-		removeItem(path.Join(fp, item.Name()), rootFolder, dryRun)
+		return removeItem(path.Join(fp, item.Name()), rootFolder, dryRun)
 	}
+	return nil
 }
 
 // handleEmptyDirectory handles the removal of an empty directory if it is stale.
+// It returns any error from the underlying removal so the caller can
+// aggregate failures across the directory tree.
 func handleEmptyDirectory(fp string, di fs.FileInfo, age int, ext, rootFolder string, dryRun, pruneEmptyDirs bool) error {
 	empty, err := isEmpty(fp)
 	if err != nil {
@@ -203,7 +217,7 @@ func handleEmptyDirectory(fp string, di fs.FileInfo, age int, ext, rootFolder st
 		// The extension filter makes directory removal conservative by default to avoid deleting
 		// directory structures when only certain file types are being cleaned up.
 		if pruneEmptyDirs || (isStale(di, age) && ext == "") {
-			removeItem(fp, rootFolder, dryRun)
+			return removeItem(fp, rootFolder, dryRun)
 		}
 	}
 	return nil
@@ -236,19 +250,24 @@ func isStale(fi os.FileInfo, age int) bool {
 }
 
 // removeItem removes an item from the filesystem.
-func removeItem(fp, rootFolder string, dryRun bool) {
+// It returns the error from os.Remove when removal fails so callers can
+// aggregate and surface partial-failure to the user. The error is also
+// logged via the existing logger.Errorf to preserve the current log format.
+func removeItem(fp, rootFolder string, dryRun bool) error {
 	if fp == rootFolder {
 		logger.Infof("Not removing folder '%v' as it is the root folder...\n", filepath.FromSlash(fp))
-		return
+		return nil
 	}
 	if dryRun {
 		logger.Infof("[DRY RUN] '%v' would be removed...", filepath.FromSlash(fp))
-		return
+		return nil
 	}
 	logger.Infof("Removing '%v'...", filepath.FromSlash(fp))
 	if err := os.Remove(fp); err != nil {
 		logger.Errorf("%v", err)
+		return err
 	}
+	return nil
 }
 
 // getExt returns the file extension of the presented path.
