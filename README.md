@@ -16,6 +16,7 @@
 - [Features](#features)
 - [Install instructions](#install-instructions)
 - [Usage instructions](#usage-instructions)
+- [Trust model / Security](#trust-model--security)
 - [Contribution](#contribution)
 - [Release Process](#release-process)
 - [License](#license)
@@ -134,6 +135,22 @@ rmstale --age 30 --path ~/Downloads --dry-run
 ```
 
 Any errors encountered during the deletion process (e.g., permission issues) will be logged.
+
+## Trust model / Security
+
+rmstale decides whether a file or directory is stale from its modification time (`ModTime`) as reported by the operating system. This metadata is **trusted but not verified**: on every supported platform the file owner can change it freely using tools like `touch -d`, `os.Chtimes`, PowerShell's `LastWriteTime`, or the file properties dialog. Nothing rmstale reads about a file is cryptographically signed or tamper-evident.
+
+In practice this means:
+
+- A file that should be removed can be **pinned** past the cleanup window by setting its `ModTime` to the future (e.g. `touch -d "2099-01-01" file`).
+- Conversely, a file can be **forced into deletion** by back-dating its `ModTime`, which also lets an empty parent directory be pruned on the next run.
+
+Recommendations for operators running rmstale against shared or untrusted directories (CI runners, scratch storage, multi-tenant `/tmp` directories, HPC workspaces, etc.):
+
+- Run rmstale as a **single, dedicated user** that owns the directories being cleaned up. Treat that user's `ModTime` writes as the only ones you trust.
+- Run rmstale from a **privileged context** (e.g. a scheduled task, cron job, or service account) so that any tampering by other users with write access to the metadata cannot bypass the policy.
+- Avoid running rmstale against directories writable by users whose files you would not want to keep or delete; the `ModTime` it sees is the one those users set.
+- Use `--dry-run` first when pointing rmstale at a new path to confirm the age threshold and ownership assumptions match your expectations.
 
 ## Contribution
 
