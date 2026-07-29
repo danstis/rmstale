@@ -12,6 +12,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"time"
 
@@ -23,14 +24,15 @@ var AppVersion = "0.0.0"
 
 func usage() string {
 	return fmt.Sprintf(`Usage of rmstale:
-  -a, --age             Period in days before an item is considered stale. (REQUIRED)
-  -d, --dry-run         Runs the process in dry-run mode. No files will be removed, but the tool will log the files that would be deleted. (default %v)
-  -e, --extension       Filter files for a defined file extension. This flag only applies to files, not directories. (default %q)
-  -p, --path            Path to a folder to process. (default %s)
-  -v, --version         Displays the version of rmstale that is currently running. (default %v)
-  -y, --confirm         Allows for processing without confirmation prompt, useful for scheduling. (default %v)
-  --prune-empty-dirs    Remove empty directories even if they are not stale. (default %v)
-`, false, "", filepath.FromSlash(os.TempDir()), false, false, false)
+  -a, --age                  Period in days before an item is considered stale. (REQUIRED)
+  -d, --dry-run              Runs the process in dry-run mode. No files will be removed, but the tool will log the files that would be deleted. (default %v)
+  -e, --extension            Filter files for a defined file extension. This flag only applies to files, not directories. (default %q)
+  -p, --path                 Path to a folder to process. (default %s)
+  --allow-system-paths       Permit rmstale to operate on protected system roots (/, C:\, /etc, /usr, /var, /boot, /proc, /sys, $HOME). Sub-paths of those roots are reachable by default. (default %v)
+  -v, --version              Displays the version of rmstale that is currently running. (default %v)
+  -y, --confirm              Allows for processing without confirmation prompt, useful for scheduling. (default %v)
+  --prune-empty-dirs         Remove empty directories even if they are not stale. (default %v)
+`, false, "", filepath.FromSlash(os.TempDir()), false, false, false, false)
 }
 
 func main() {
@@ -44,13 +46,14 @@ func run() int {
 	flag.Usage = func() { fmt.Print(usage()) }
 
 	var (
-		folder      string
-		age         int
-		confirm     bool
-		ext         string
-		showVersion bool
-		extMsg      string
-		dryRun      bool
+		folder           string
+		age              int
+		confirm          bool
+		ext              string
+		showVersion      bool
+		extMsg           string
+		dryRun           bool
+		allowSystemPaths bool
 	)
 	flag.StringVar(&folder, "p", os.TempDir(), "Path to check for stale files.")
 	flag.StringVar(&folder, "path", os.TempDir(), "Path to check for stale files.")
@@ -64,6 +67,7 @@ func run() int {
 	flag.BoolVar(&showVersion, "version", false, "Display version information.")
 	flag.BoolVar(&dryRun, "d", false, "Dry run mode, no files will be removed.")
 	flag.BoolVar(&dryRun, "dry-run", false, "Dry run mode, no files will be removed.")
+	flag.BoolVar(&allowSystemPaths, "allow-system-paths", false, "Permit rmstale to operate on protected system roots (see validatePath).")
 	var pruneEmptyDirs bool
 	flag.BoolVar(&pruneEmptyDirs, "prune-empty-dirs", false, "Remove empty directories even if they are not stale.")
 
@@ -88,7 +92,27 @@ func run() int {
 	if err := validateAge(age); err != nil {
 		fmt.Fprintln(os.Stderr, "Error:", err)
 		flag.Usage()
-		os.Exit(1)
+		return exitProcessingError
+	}
+
+	// Canonicalise --path before validation so the prompt, log line, and
+	// procDir path all reference the same absolute location. filepath.Abs
+	// resolves the supplied value against the current working directory and
+	// filepath.Clean collapses '..', '.', redundant separators, and trailing
+	// slashes so a smuggled root cannot bypass validatePath's exact-match
+	// check below.
+	abs, err := filepath.Abs(folder)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error: --path %q: %v\n", folder, err)
+		flag.Usage()
+		return exitProcessingError
+	}
+	folder = filepath.Clean(abs)
+
+	if err := validatePath(folder, allowSystemPaths); err != nil {
+		fmt.Fprintln(os.Stderr, "Error:", err)
+		flag.Usage()
+		return exitProcessingError
 	}
 
 	defer logger.Init("rmstale", true, true, io.Discard).Close()
@@ -108,9 +132,11 @@ func run() int {
 	return exitSuccess
 }
 
-// Exit codes returned by run. Processing failures (BSOD-285) return a non-zero
-// code so that wrappers, schedulers and CI steps can distinguish a successful
-// run from one in which procDir reported an error.
+// Exit codes returned by run. Processing failures (BSOD-285) and usage
+// errors (invalid --age, invalid --path) both return exitProcessingError
+// (= 1) so that wrappers, schedulers and CI steps see a single non-zero
+// signal for any failure mode. This preserves the exit-code semantics of
+// BSOD-281 (negative-age rejection) and BSOD-285 (processing failure).
 const (
 	exitSuccess         = 0
 	exitProcessingError = 1
@@ -129,6 +155,58 @@ func validateAge(age int) error {
 		return fmt.Errorf("--age must be a positive integer (got %d)", age)
 	}
 	return nil
+}
+
+// validatePath refuses the supplied --path when it resolves to a filesystem
+// root on the protected list (BSOD-282). The comparison is exact-match:
+// sub-paths such as /var/tmp, ~/Documents, or the macOS temp directory under
+// /var/folders/... remain reachable without an override, so legitimate
+// staging areas continue to work out of the box. allowSystemPaths lets a
+// caller opt into running against a protected root after they have reviewed
+// the consequences (it is intended for cron jobs that need to manage files in
+// /var, for example).
+//
+// The caller is expected to pass an already-canonicalised path (see run());
+// validatePath will canonicalise again as a defensive measure in case the
+// function is exercised from a test or future caller that forgot.
+func validatePath(folder string, allowSystemPaths bool) error {
+	if allowSystemPaths {
+		return nil
+	}
+	abs, err := filepath.Abs(folder)
+	if err != nil {
+		return fmt.Errorf("--path %q: %w", folder, err)
+	}
+	cleaned := filepath.Clean(abs)
+	for _, root := range protectedRoots() {
+		if cleaned == root {
+			return fmt.Errorf("--path %q resolves to a protected root %q; pass --allow-system-paths to override", folder, cleaned)
+		}
+	}
+	return nil
+}
+
+// protectedRoots returns the exact-match deny list of filesystem roots that
+// validatePath refuses to descend into without --allow-system-paths. The list
+// is deliberately small and restricted to top-level locations that either
+// govern system operation or hold the current user's data, so sub-paths of
+// those locations (e.g. /var/tmp, ~/Documents) remain reachable.
+func protectedRoots() []string {
+	roots := make([]string, 0, 10)
+	if runtime.GOOS == "windows" {
+		roots = append(roots, `C:\`, `c:\`)
+	} else {
+		roots = append(roots, string(filepath.Separator))
+	}
+	if runtime.GOOS != "windows" {
+		roots = append(roots, "/etc", "/usr", "/var", "/boot", "/proc", "/sys")
+	}
+	if home, err := os.UserHomeDir(); err == nil && home != "" {
+		if absHome, err := filepath.Abs(home); err == nil {
+			roots = append(roots, filepath.Clean(absHome))
+		}
+	}
+	return roots
 }
 
 // prompt prompts the user for confirmation before proceeding.
