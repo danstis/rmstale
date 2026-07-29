@@ -92,7 +92,7 @@ func run() int {
 	if err := validateAge(age); err != nil {
 		fmt.Fprintln(os.Stderr, "Error:", err)
 		flag.Usage()
-		os.Exit(1)
+		return exitProcessingError
 	}
 
 	// Canonicalise --path before validation so the prompt, log line, and
@@ -105,14 +105,14 @@ func run() int {
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: --path %q: %v\n", folder, err)
 		flag.Usage()
-		os.Exit(1)
+		return exitProcessingError
 	}
 	folder = filepath.Clean(abs)
 
 	if err := validatePath(folder, allowSystemPaths); err != nil {
 		fmt.Fprintln(os.Stderr, "Error:", err)
 		flag.Usage()
-		os.Exit(1)
+		return exitProcessingError
 	}
 
 	defer logger.Init("rmstale", true, true, io.Discard).Close()
@@ -132,9 +132,11 @@ func run() int {
 	return exitSuccess
 }
 
-// Exit codes returned by run. Processing failures (BSOD-285) return a non-zero
-// code so that wrappers, schedulers and CI steps can distinguish a successful
-// run from one in which procDir reported an error.
+// Exit codes returned by run. Processing failures (BSOD-285) and usage
+// errors (invalid --age, invalid --path) both return exitProcessingError
+// (= 1) so that wrappers, schedulers and CI steps see a single non-zero
+// signal for any failure mode. This preserves the exit-code semantics of
+// BSOD-281 (negative-age rejection) and BSOD-285 (processing failure).
 const (
 	exitSuccess         = 0
 	exitProcessingError = 1
