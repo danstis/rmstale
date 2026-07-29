@@ -92,15 +92,32 @@ rm rmstale.tar.gz
 
 ### Command Line Flags
 
-| Flag            | Description                                                                                                        | Default         |
-| --------------- | ------------------------------------------------------------------------------------------------------------------ | --------------- |
-| -a, --age       | Period in days before an item is considered stale. (REQUIRED)                                                      | *(required)*    |
-| -d, --dry-run   | Runs the process in dry-run mode. No files will be removed, but the tool will log the files that would be deleted. | `false`         |
-| -e, --extension | Filter files for a defined file extension. This flag only applies to files, not directories.                       | *(empty)*       |
-| -p, --path      | Path to a folder to process.                                                                                       | system temp dir |
-| --prune-empty-dirs | Remove empty directories even if they are not stale.                                                            | `false`         |
-| -v, --version   | Displays the version of rmstale that is currently running.                                                         | `false`         |
-| -y, --confirm   | Allows for processing without confirmation prompt, useful for scheduling.                                          | `false`         |
+| Flag                 | Description                                                                                                                                                              | Default         |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------- |
+| -a, --age            | Period in days before an item is considered stale. (REQUIRED)                                                                                                            | *(required)*    |
+| -d, --dry-run        | Runs the process in dry-run mode. No files will be removed, but the tool will log the files that would be deleted.                                                       | `false`         |
+| -e, --extension      | Filter files for a defined file extension. This flag only applies to files, not directories.                                                                             | *(empty)*       |
+| -p, --path           | Path to a folder to process. Resolved to an absolute, cleaned path before use. Refused when it equals a protected filesystem root (see `--allow-system-paths`).          | system temp dir |
+| --allow-system-paths | Permit rmstale to operate on protected system roots (`/`, `C:\`, `/etc`, `/usr`, `/var`, `/boot`, `/proc`, `/sys`, or the current user's home directory). Sub-paths remain reachable by default. | `false`         |
+| --prune-empty-dirs   | Remove empty directories even if they are not stale.                                                                                                                     | `false`         |
+| -v, --version        | Displays the version of rmstale that is currently running.                                                                                                               | `false`         |
+| -y, --confirm        | Allows for processing without confirmation prompt, useful for scheduling.                                                                                                | `false`         |
+
+#### Safety: protected paths
+
+`rmstale` refuses to descend into exact-match protected filesystem roots unless
+`--allow-system-paths` is set. The protected roots are:
+
+- `/` (filesystem root on Linux/macOS) and `C:\` (drive root on Windows)
+- `/etc`, `/usr`, `/var`, `/boot`, `/proc`, `/sys` (Linux/macOS system roots)
+- the current user's home directory (`os.UserHomeDir()`)
+
+Sub-paths of those roots — for example `/var/tmp`, `/home/user/data`, or
+`C:\Users\<user>\AppData\Local\Temp` — remain reachable without the override so
+legitimate staging areas keep working out of the box. Scheduled jobs that
+genuinely need to clean files inside a protected root should pass
+`--allow-system-paths` after reviewing the consequences (a typo in the path
+could destroy system state).
 
 ### Usage Examples
 
