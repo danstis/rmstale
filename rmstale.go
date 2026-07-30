@@ -29,10 +29,11 @@ func usage() string {
   -e, --extension            Filter files for a defined file extension. This flag only applies to files, not directories. (default %q)
   -p, --path                 Path to a folder to process. (default %s)
   --allow-system-paths       Permit rmstale to operate on protected system roots (/, C:\, /etc, /usr, /var, /boot, /proc, /sys, $HOME). Sub-paths of those roots are reachable by default. (default %v)
+  --follow-symlinks          Follow a --path that is a symbolic link. Refused by default to close a TOCTOU / confused-deputy hazard (BSOD-284). (default %v)
   -v, --version              Displays the version of rmstale that is currently running. (default %v)
   -y, --confirm              Allows for processing without confirmation prompt, useful for scheduling. (default %v)
   --prune-empty-dirs         Remove empty directories even if they are not stale. (default %v)
-`, false, "", filepath.FromSlash(os.TempDir()), false, false, false, false)
+`, false, "", filepath.FromSlash(os.TempDir()), false, false, false, false, false)
 }
 
 func main() {
@@ -54,6 +55,7 @@ func run() int {
 		extMsg           string
 		dryRun           bool
 		allowSystemPaths bool
+		followSymlinks   bool
 	)
 	flag.StringVar(&folder, "p", os.TempDir(), "Path to check for stale files.")
 	flag.StringVar(&folder, "path", os.TempDir(), "Path to check for stale files.")
@@ -68,6 +70,7 @@ func run() int {
 	flag.BoolVar(&dryRun, "d", false, "Dry run mode, no files will be removed.")
 	flag.BoolVar(&dryRun, "dry-run", false, "Dry run mode, no files will be removed.")
 	flag.BoolVar(&allowSystemPaths, "allow-system-paths", false, "Permit rmstale to operate on protected system roots (see validatePath).")
+	flag.BoolVar(&followSymlinks, "follow-symlinks", false, "Follow a --path that is a symbolic link. Refused by default (BSOD-284).")
 	var pruneEmptyDirs bool
 	flag.BoolVar(&pruneEmptyDirs, "prune-empty-dirs", false, "Remove empty directories even if they are not stale.")
 
@@ -110,6 +113,12 @@ func run() int {
 	folder = filepath.Clean(abs)
 
 	if err := validatePath(folder, allowSystemPaths); err != nil {
+		fmt.Fprintln(os.Stderr, "Error:", err)
+		flag.Usage()
+		return exitProcessingError
+	}
+
+	if err := validateNoSymlink(folder, followSymlinks); err != nil {
 		fmt.Fprintln(os.Stderr, "Error:", err)
 		flag.Usage()
 		return exitProcessingError
@@ -207,6 +216,41 @@ func protectedRoots() []string {
 		}
 	}
 	return roots
+}
+
+// validateNoSymlink refuses a --path whose final component is a symbolic
+// link unless the caller opts in with --follow-symlinks. This closes the
+// TOCTOU / confused-deputy hazard described in BSOD-284 where an attacker
+// can swap the target directory for a symlink to a sensitive location
+// between scheduling and execution (e.g. ln -s /etc /tmp/scratch), causing
+// os.Stat to follow the link and operate on the target.
+//
+// filepath.Abs/Clean are lexical and do NOT resolve symlinks, so the
+// canonicalised path handed in by run() still names the symlink itself; the
+// Lstat below therefore reports the symlink's own mode rather than the
+// target's. Non-existent paths are returned as nil so procDir's existing
+// os.Stat error reporting remains the single source of truth for that case.
+//
+// BSOD-284 scope: this guard inspects only the final path component. A
+// symlink in an intermediate component (e.g. /tmp/link/sub) is not
+// detected; the Lstat-based check is intentionally preferred over
+// filepath.EvalSymlinks because the latter requires the path to exist and
+// is not trivially cross-platform. The boundary is documented so reviewers
+// know exactly what the guard does and does not cover.
+func validateNoSymlink(folder string, followSymlinks bool) error {
+	if followSymlinks {
+		return nil
+	}
+	fi, err := os.Lstat(folder)
+	if err != nil {
+		// Path does not exist or is unreadable: defer to procDir's
+		// existing os.Stat error handling rather than masking it.
+		return nil
+	}
+	if fi.Mode()&os.ModeSymlink != 0 {
+		return fmt.Errorf("--path %q is a symbolic link; refusing to follow it (pass --follow-symlinks to override)", folder)
+	}
+	return nil
 }
 
 // prompt prompts the user for confirmation before proceeding.
