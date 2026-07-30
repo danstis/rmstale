@@ -93,7 +93,7 @@ func run() int {
 	}
 
 	if err := validateAge(age); err != nil {
-		fmt.Fprintln(os.Stderr, "Error:", err)
+		fmt.Fprintln(os.Stderr, errPrefix, err)
 		flag.Usage()
 		return exitProcessingError
 	}
@@ -113,13 +113,13 @@ func run() int {
 	folder = filepath.Clean(abs)
 
 	if err := validatePath(folder, allowSystemPaths); err != nil {
-		fmt.Fprintln(os.Stderr, "Error:", err)
+		fmt.Fprintln(os.Stderr, errPrefix, err)
 		flag.Usage()
 		return exitProcessingError
 	}
 
 	if err := validateNoSymlink(folder, followSymlinks); err != nil {
-		fmt.Fprintln(os.Stderr, "Error:", err)
+		fmt.Fprintln(os.Stderr, errPrefix, err)
 		flag.Usage()
 		return exitProcessingError
 	}
@@ -149,6 +149,12 @@ func run() int {
 const (
 	exitSuccess         = 0
 	exitProcessingError = 1
+	// errPrefix is the leading token used when reporting a usage or
+	// validation error to stderr. It is shared by every guard in run()
+	// so the wording stays consistent and the literal is not duplicated
+	// (SonarCloud S1192: "Define a constant instead of duplicating this
+	// literal 'Error:' 3 times").
+	errPrefix = "Error:"
 )
 
 // versionInfo returns the version information of the rmstale application

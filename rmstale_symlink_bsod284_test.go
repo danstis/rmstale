@@ -184,6 +184,12 @@ func runCrasherSymlink(t *testing.T) {
 	// the sentinel. -y skips the interactive prompt. --follow-symlinks
 	// is intentionally omitted so the guard fires.
 	os.Args = []string{"rmstale", "-a", "1", "-p", path, "-y"}
+	// skipcq: RVV-A0003 — the BE_CRASHER subprocess needs to exit with
+	// run()'s return code so the parent test can distinguish "guard fired"
+	// (exitProcessingError = 1) from "procDir ran" (any other code). This
+	// mirrors the existing runCrasherPath/runCrasherSubdir convention in
+	// rmstale_test.go so DeepSource's "os.Exit only in main()/init()"
+	// rule accepts it as a deliberate test-only subprocess control flow.
 	os.Exit(run())
 }
 
@@ -198,6 +204,8 @@ func runCrasherSymlinkAllow(t *testing.T) {
 
 	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
 	os.Args = []string{"rmstale", "-a", "1", "-p", path, "-y", "--follow-symlinks"}
+	// skipcq: RVV-A0003 — same justification as runCrasherSymlink above;
+	// the subprocess exit code is the signal the parent test inspects.
 	os.Exit(run())
 }
 
