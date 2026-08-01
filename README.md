@@ -175,7 +175,7 @@ Feedback, issues, and contributions are welcome! For bugs, issues, or feature re
 
 Want to contribute? Please:
 - Fork the repo and clone it locally
-- Use Go 1.24 or above
+- Use Go 1.25 or above
 - Format code with `gofmt -w` and check with `golangci-lint`
 - Add or update tests (`go test ./...`)
 - Follow the [CONTRIBUTING.md](CONTRIBUTING.md) guidelines
