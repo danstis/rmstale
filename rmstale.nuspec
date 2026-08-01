@@ -7,11 +7,11 @@
     <packageSourceUrl>https://github.com/danstis/rmstale</packageSourceUrl>
     <owners>Dan Anstis</owners>
     <title>rmstale</title>
-    <authors>Dan Ansits</authors>
+    <authors>Dan Anstis</authors>
     <projectUrl>https://github.com/danstis/rmstale</projectUrl>
-    <licenseUrl>https://github.com/danstis/rmstale/blob/master/LICENSE.txt</licenseUrl>
+    <licenseUrl>https://github.com/danstis/rmstale/blob/main/LICENSE.txt</licenseUrl>
     <projectSourceUrl>https://github.com/danstis/rmstale</projectSourceUrl>
-    <docsUrl>https://github.com/danstis/rmstale/blob/master/README.md</docsUrl>
+    <docsUrl>https://github.com/danstis/rmstale/blob/main/README.md</docsUrl>
     <bugTrackerUrl>https://github.com/danstis/rmstale/issues</bugTrackerUrl>
     <tags>rmstale delete stale</tags>
     <summary>rmstale removes stale files.</summary>
