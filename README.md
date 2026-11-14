@@ -100,6 +100,7 @@ rm rmstale.tar.gz
 | -e, --extension      | Filter files for a defined file extension. This flag only applies to files, not directories.                                                                             | *(empty)*       |
 | -p, --path           | Path to a folder to process. Resolved to an absolute, cleaned path before use. Refused when it equals a protected filesystem root (see `--allow-system-paths`).          | system temp dir |
 | --allow-system-paths | Permit rmstale to operate on protected system roots (`/`, `C:\`, `/etc`, `/usr`, `/var`, `/boot`, `/proc`, `/sys`, or the current user's home directory). Sub-paths remain reachable by default. | `false`         |
+| --follow-symlinks    | Follow a `--path` whose final component is a symbolic link. Refused by default to close a TOCTOU / confused-deputy hazard (an attacker could swap a scheduled target for `ln -s /etc /tmp/scratch` between scheduling and execution). | `false`         |
 | --prune-empty-dirs   | Remove empty directories even if they are not stale.                                                                                                                     | `false`         |
 | -v, --version        | Displays the version of rmstale that is currently running.                                                                                                               | `false`         |
 | -y, --confirm        | Allows for processing without confirmation prompt, useful for scheduling.                                                                                                | `false`         |
@@ -119,6 +120,28 @@ legitimate staging areas keep working out of the box. Scheduled jobs that
 genuinely need to clean files inside a protected root should pass
 `--allow-system-paths` after reviewing the consequences (a typo in the path
 could destroy system state).
+
+#### Safety: symbolic-link `--path`
+
+`rmstale` refuses to follow a `--path` whose final component is a symbolic
+link unless `--follow-symlinks` is set. Without this guard, `os.Stat` happily
+follows the link and the tool processes the target directory instead of the
+path the caller typed. This is exploitable in two common scenarios:
+
+- **TOCTOU on scheduled jobs.** A scheduled `rmstale -p /tmp/scratch` reads
+  its `--path` at start-up. If, between scheduling and execution, an attacker
+  replaces the directory with `ln -s /etc /tmp/scratch`, rmstale will process
+  `/etc` instead.
+- **Confused-deputy on shared hosts.** User A creates
+  `~/cleanup-target -> /home/B/private` and runs `rmstale -p ~/cleanup-target`
+  intending their own scratch directory; rmstale operates on user B's home.
+
+The check inspects only the final path component — it catches
+`-p /tmp/link` exactly but does not catch a symlink in an intermediate
+component such as `-p /tmp/link/sub`. Callers who genuinely need the old
+follow-the-symlink behaviour (e.g. legacy cron jobs) can pass
+`--follow-symlinks` after reviewing the consequences; this is a behaviour
+change for anyone previously relying on a symlinked `-p` without the flag.
 
 ### Usage Examples
 
